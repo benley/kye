@@ -21,6 +21,7 @@
 from copy import deepcopy
 from kye.common import xsize, ysize
 
+
 def freq(s):
     """Returns a frequency table for entries in the supplied list (as a hash)."""
     h = {}
@@ -29,6 +30,7 @@ def freq(s):
             h[c] = 0
         h[c] = h[c] + 1
     return h
+
 
 class KLevelEdit:
     """Class to store levels being edited, handle reading from and writing to file etc."""
@@ -69,13 +71,13 @@ class KLevelEdit:
         '<' : ("rocky_left", '^'),
         '>' : ("rocky_right", 'v'),
         'H' : ("black_hole_1", 'H'),
-        '}' : ("block_timer_3", '|'), 
-        '|' : ("block_timer_4", '{'), 
-        '{' : ("block_timer_5", 'z'), 
-        'z' : ("block_timer_6", 'y'), 
-        'y' : ("block_timer_7", 'x'), 
-        'x' : ("block_timer_8", 'w'), 
-        'w' : ("block_timer_9", '}'), 
+        '}' : ("block_timer_3", '|'),
+        '|' : ("block_timer_4", '{'),
+        '{' : ("block_timer_5", 'z'),
+        'z' : ("block_timer_6", 'y'),
+        'y' : ("block_timer_7", 'x'),
+        'x' : ("block_timer_8", 'w'),
+        'w' : ("block_timer_9", '}'),
         'h' : ("oneway_down_1", 'g'),
         'i' : ("oneway_up_1", 'f'),
         'f' : ("oneway_right_1", 'h'),
@@ -94,45 +96,45 @@ class KLevelEdit:
     def __init__(self, f, disp, newleveltemplate, setlevellist = None, hintmenuitems = None):
         self.levels = []
         self.__disp = disp
-        
+
         # First line is # of levels. We don't need/use this.
         numlevels = f.readline()
         while 1:
             l = f.readline()
             if l == "":
                 break
-            
+
             # Each level has NAME<CRLF>Hint<CRLF>Exit message<CRLF>20x(Level data<CRLF>)
             lname = l.strip().upper()
             hint = f.readline().strip()
             if hint == "": break
             exitmsg = f.readline().strip()
             if exitmsg == "": break
-            
+
             # read in the board
             board = []
             for y in range(ysize):
                 l = f.readline()
                 for x in range(xsize):
                     c = l[x]
-                    
+
                     # Edge tiles must be walls - as in original Kye, force this.
                     if c not in KLevelEdit.wall and (x == 0 or y == 0 or x == xsize-1 or y == ysize-1):
                         c = '5'
-                        
+
                     board.append(c)
-            
+
             # The board, plus the level strings, makes the level. Add to our list of levels.
             newlevel = { 'name': lname, 'hint': hint, 'exitmsg': exitmsg, 'board': board }
             self.levels.append(newlevel)
-        
+
         # All done, close the file.
         f.close()
-        
+
         # Callbacks to the frame
         self.__setlevellist = setlevellist
         self.__hintmenuitems = hintmenuitems
-        
+
         # Undo history & modified/saved state tracking
         self.__undohist = []
         self.__mods = 0
@@ -170,11 +172,11 @@ class KLevelEdit:
         # Add it
         self.curlevel = n = len(self.levels)
         self.levels.append(deepcopy(self.__newlevel))
-        
+
         # Add undo entry
         self.add_undo(("newlevel", n))
         self.__mods = self.__mods+1
-        
+
         # Focus this level for editing
         self.setlevel(len(self.levels)-1)
         self.updatelevellist()
@@ -271,10 +273,10 @@ class KLevelEdit:
         self.newmod()
         for t in ('name', 'hint', 'exitmsg'):
             self.levels[self.curlevel][t] = h[t]
-        
+
         # May need to update menu
         self.updatelevellist()
-        
+
     def get_messages(self):
         """Returns the messages for the current level as a hash"""
         return dict((t, self.levels[self.curlevel][t]) for t in ('name','hint','exitmsg'))
@@ -368,4 +370,3 @@ class KLevelEdit:
                     i = i + 1
                 f.write("\r\n")
                 f.flush()
-

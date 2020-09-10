@@ -22,4 +22,3 @@ from kye.editor import KEditor
 import sys
 
 KEditor().main(sys.argv[1:])
-

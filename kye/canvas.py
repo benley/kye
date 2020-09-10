@@ -24,22 +24,23 @@ pygtk.require('2.0')
 import gtk
 from kye.common import xsize, ysize, findfile, KyeImageDir
 
+
 class KCanvas(gtk.DrawingArea):
     """A gtk DrawingArea which draws the game."""
     tilesize = 16
 
     def __init__(self, responder, tilesize = 16):
         gtk.DrawingArea.__init__(self)
-        
+
         # Remember the tilesize, and set the canvas size appropriately.
         KCanvas.tilesize = tilesize
         self.set_size_request(KCanvas.tilesize*xsize, KCanvas.tilesize*ysize)
-        
+
         # Set GTK window flags & expose handler.
         self.set_events(gtk.gdk.EXPOSURE_MASK | gtk.gdk.KEY_PRESS_MASK | gtk.gdk.KEY_RELEASE_MASK | gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_RELEASE_MASK | gtk.gdk.POINTER_MOTION_MASK)
         self.set_flags(gtk.CAN_FOCUS)
         self.connect("expose-event", self.expose)
-        
+
         # Set up mouse event handling.
         self.mouseto = responder.mouse_motion_event
         self.bpress = responder.button_press_event
@@ -47,13 +48,13 @@ class KCanvas(gtk.DrawingArea):
         self.connect("motion_notify_event",  self.mouse_motion_event  )
         self.connect("button_press_event",   self.button_press_event  )
         self.connect("button_release_event", self.button_release_event)
-        
+
         # Set up keyboard handling.
         if hasattr(responder, "key_press_event"):
             self.connect("key_press_event",   responder.key_press_event)
         if hasattr(responder, "key_release_event"):
             self.connect("key_release_event", responder.key_release_event)
-            
+
         # Get the image directory and create the rendered image cache.
         imgdirname = findfile("images.tar.gz")
         if imgdirname == None:
@@ -66,7 +67,7 @@ class KCanvas(gtk.DrawingArea):
             raise Exception, "aborting, no tileset"
         self.imgdir = KyeImageDir(imgdirname)
         self.images = {}
-        
+
         # Set up array holding the on-screen state.
         self.showboard = []
         for i in range(xsize*ysize):
@@ -74,7 +75,7 @@ class KCanvas(gtk.DrawingArea):
 
     def game_redraw(self, game, changed_squares):
         """Update the displayed game from the game in memory (e.g. after a game tick has run).
-        
+
         game  -- the game object (we call get_tile on this to get the new state.
         changed_squares -- array containing true/false values to indicate which squares (may) have changed since the last rendering. Note that this is flattened, so it contains values for (0,0), (1,0), ..., (30,0), (0, 1), ... etc.
 
@@ -94,20 +95,20 @@ class KCanvas(gtk.DrawingArea):
 
     def get_image(self, tilename, tilesize = None):
         """Get a GDK PixBuf containing the rendered image for the named tile.
-        
+
         If specified, tilesize overrides the current tile size of the canvas
         (e.g. to get images for dialogs or the status bar at an invariant size).
         """
         # Use current tilesize by default.
         if tilesize == None:
             tilesize = KCanvas.tilesize
-        
+
         # Use cached image data if available.
         if tilesize == KCanvas.tilesize and tilename in self.images:
             return self.images[tilename]
         else:
             image_data = self.imgdir.get_tile(tilename)
-            
+
             # Make gdk PixbufLoader, feed it the data, get the resulting pixbuf
             pixbuf_loader = gtk.gdk.PixbufLoader()
             pixbuf_loader.set_size(tilesize, tilesize)
@@ -116,13 +117,13 @@ class KCanvas(gtk.DrawingArea):
             i = pixbuf_loader.get_pixbuf()
             if i == None:
                 raise KeyError, "Incomplete image for "+tilename
-            
+
             # Add in the white background.
             i = i.composite_color_simple(tilesize, tilesize, gtk.gdk.INTERP_BILINEAR, 255, tilesize, 0xffffffL, 0xffffffL)
-            
+
             # Adding an alpha channel seems to help it work with some image formats/colour depths.
             i = i.add_alpha(False, '\x00', '\x00', '\x00')
-            
+
             # Cache if this is the useful size for us.
             if tilesize == KCanvas.tilesize:
                 self.images[tilename] = i
@@ -133,7 +134,7 @@ class KCanvas(gtk.DrawingArea):
         KCanvas.tilesize = size
         self.set_size_request(self.tilesize*xsize, self.tilesize*ysize)
         self.queue_draw_area(0, 0, self.tilesize*xsize, self.tilesize*ysize)
-        
+
         # And must flush the tile cache; need to redraw from the image data at the new tile size.
         self.images = {}
 

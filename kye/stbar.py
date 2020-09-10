@@ -23,6 +23,7 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 
+
 class StatusBarKyes(gtk.DrawingArea):
     """Small gtk DrawingArea-derived widget for the bottom-left of the game display, showing lives left."""
     def __init__(self, kyeimg):
@@ -31,7 +32,7 @@ class StatusBarKyes(gtk.DrawingArea):
         self.__kyeimg = kyeimg
         self.connect("expose-event", self.expose)
         self.__kyes = None
-        
+
     def expose(self, window,event):
         """Handle redraws."""
         gc = self.window.new_gc()
@@ -48,11 +49,12 @@ class StatusBarKyes(gtk.DrawingArea):
         if num_kyes != self.__kyes:
             self.__kyes = num_kyes
             self.queue_draw_area(0, 0, 20*3+4, 20)
-        
+
+
 class StatusBar(gtk.HBox):
     """Gtk widget for the Kye status bar."""
     string_map = {
-        "diamonds"  :   "Diamonds left", 
+        "diamonds"  :   "Diamonds left",
         "levelnum"  :   "Level",
         "hint"      :   "Hint"
     }
@@ -84,7 +86,7 @@ class StatusBar(gtk.HBox):
             # hint text should also be added to the tooltip.
             if k == "hint":
                 self.__hint_eventbox.set_tooltip_text(value)
-            
+
             # The string labels we update; the kye count, we pass to the special kyes widget.
             if k in StatusBar.string_map:
                 self.__dict__[k].set_text("%s: %s" % (StatusBar.string_map[k], str(value)))

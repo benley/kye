@@ -27,6 +27,7 @@ from os.path import basename
 
 from kye.common import version
 
+
 class KMoveInput:
     """Gets movement input, and converts it into game actions."""
     def __init__(self):
@@ -110,17 +111,17 @@ class KMoveInput:
             k = self.keyqueue[0]
             self.keyqueue = self.keyqueue[1:]
             return k
-            
+
         # Then, if the mouse is pressed, do it
         if self.mousemoving and self.currentmouse:
             return self.currentmouse
-            
+
         # Finally, if any keys are held, use the most recently pressed
         if len(self.heldkeys) > 0:
             if self.__delay <= 0:
                 return self.heldkeys[-1]
             self.__delay = self.__delay - 1
-            
+
         # No action
         return None
 
@@ -139,7 +140,7 @@ class KMoveInput:
         # Open the stream
         stream = GzipFile(recfile, "w")
         self.__recordto = stream
-        
+
         # Write header
         stream.write("Kye %s recording:\n" % version)
         stream.write(basename(playfile) + "\n")
@@ -159,16 +160,20 @@ class KMoveInput:
             self.__recordto.write("\n")
         return m
 
+
 class KDemoError(Exception):
     pass
-    
+
+
 class KDemoFormatError(KDemoError):
     pass
-    
+
+
 class KDemoFileMismatch(KDemoError):
     def __init__(self, filename):
         KDemoError.__init__()
         self.filename = filename
+
 
 class KyeRecordedInput:
     """An input source which is a recording in a file of a previous game."""
@@ -177,12 +182,12 @@ class KyeRecordedInput:
         header = instream.readline().rstrip()
         if header[0:4] != "Kye " or header[-12:-1] == " recording:":
             raise KDemoFormatError()
-        
+
         # Check filename in the demo is what we have loaded.
         fn = instream.readline().rstrip()
         if fn != basename(playfile):
             raise KDemoFileMismatch(fn)
-            
+
         # Okay
         self.__level = instream.readline().rstrip()
         self.__rng = pickle.load(instream)

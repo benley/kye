@@ -54,6 +54,7 @@ ui_string = """<ui>
  </menubar>
 </ui>"""
 
+
 class KFrame(gtk.Window):
     """Class implementing the frame surrounging the game area, including the menus and status bar."""
 
@@ -108,24 +109,24 @@ class KFrame(gtk.Window):
             raise EnvironmentError, "Needs at least pygtk-2.4.0"
         # create a new window
         gtk.Window.__init__(self, gtk.WINDOW_TOPLEVEL)
-    
+
         # When the window is given the "delete_event" signal (this is given
         # by the window manager, usually by the "close" option, or on the
         # titlebar), we ask it to call the delete_event () function
         # as defined above. The data passed to the callback
         # function is NULL and is ignored in the callback function.
         self.connect("delete_event", self.delete_event)
-    
-        # Here we connect the "destroy" event to a signal handler.  
+
+        # Here we connect the "destroy" event to a signal handler.
         # This event occurs when we call gtk_widget_destroy() on the window,
         # or if we return FALSE in the "delete_event" callback.
         self.connect("destroy", self.destroy)
-    
+
         # Sets the border width of the window.
         self.__title = ["Kye", ""]
         self.__set_title()
         self.set_resizable(False)
-    
+
         self.moveinput = KMoveInput()
         # Creates a new canvas
         tilesize = 16
@@ -136,7 +137,7 @@ class KFrame(gtk.Window):
         except (IOError, OSError), e:
             self.error_message("%s" % e)
             raise
-    
+
         # Main vbox
         self.main_vbox = gtk.VBox(False)
         self.main_vbox.set_border_width(1)
@@ -192,7 +193,7 @@ class KFrame(gtk.Window):
     def set_recent(self, recentlevels):
         """Set the list of recently-played level sets, for the recent files menu."""
         self.recent_levels = recentlevels
-        
+
         # Remove any existing level list
         if self.recent_ui_mid != None:
             self.ui.remove_ui(self.recent_ui_mid)
@@ -261,7 +262,7 @@ class KFrame(gtk.Window):
             filesel.destroy()
             self.__app.restart(recordto = filename)
         else:
-            filesel.destroy()        
+            filesel.destroy()
 
     def restart(self, w):
         """Menu requested restart of the current level."""
@@ -335,4 +336,3 @@ class KFrame(gtk.Window):
         # All PyGTK applications must have a gtk.main(). Control ends here
         # and waits for an event to occur (like a key press or mouse event).
         gtk.main()
-

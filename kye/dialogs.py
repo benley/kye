@@ -30,12 +30,12 @@ class GotoDialog(gtk.Dialog):
     def __init__(self, parent=None, knownlevs = ()):
         gtk.Dialog.__init__(self, title="Go to level", parent = parent,flags = gtk.DIALOG_MODAL, buttons=(gtk.STOCK_OK, gtk.RESPONSE_ACCEPT, gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
         self.set_default_response(gtk.RESPONSE_ACCEPT)
-        
+
         # Add prompt.
         self.label = llabel("Select, or type, the name of the level to go to.")
         self.label.show()
         self.vbox.pack_start(self.label, True, True, 0)
-        
+
         # Add combobox to select known level or enter level name.
         self.cb = gtk.combo_box_entry_new_text()
         for level in knownlevs:
@@ -64,7 +64,7 @@ def llabel(txt):
 
 class KyeHelpDialog(gtk.Dialog):
     """Help dialog box."""
-        
+
     def __init__(self, parent=None, after=None, message=None, getimage=None):
         gtk.Dialog.__init__(self, title="Help", parent=parent,
                             flags=gtk.DIALOG_DESTROY_WITH_PARENT)
@@ -146,7 +146,7 @@ def getopendialog():
 
 def KyeAboutDialog(kimg):
     """Returns a gtk.AboutDialog with all the names/details/versions for Kye entered.
-    
+
     Used to be a subclass of AboutDialog, hence the name.
     """
     try:

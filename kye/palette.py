@@ -23,6 +23,7 @@ pygtk.require('2.0')
 import gtk
 from kye.common import xsize, ysize
 
+
 class KPalette(gtk.DrawingArea):
     """Provides  object selection palette widget for the editor."""
     def __init__(self, palsource):
@@ -30,16 +31,16 @@ class KPalette(gtk.DrawingArea):
         self.mousedown = None
         self.mousebuttondown = None
         self.game = None
-        
+
         # Set up the drawing area
         gtk.DrawingArea.__init__(self)
         self.set_events(gtk.gdk.EXPOSURE_MASK | gtk.gdk.BUTTON_PRESS_MASK)
         self.connect("button_press_event", self.palette_click_event)
         self.connect("expose-event", self.expose)
-        
+
         # Build up the palette. The list of tools contains a number of circularly linked lists
         # of similar tools; we want just one tool from each list in our palette, and the user will
-        # cycle through the similar tools by clicking on them. The code below just puts one 
+        # cycle through the similar tools by clicking on them. The code below just puts one
         # item from each list into palitems, and ignores the others.
         self.__palsource = palsource
         palitems = {}
@@ -52,10 +53,10 @@ class KPalette(gtk.DrawingArea):
                 while x != f:
                     already[x] = 1
                     x = palsource[x][1]
-        
+
         # So make the initial palette from palitems.
         self.palitems = palitems.keys()
-        
+
         # Start with the wall tool.
         self.selected = '5'
 
@@ -86,7 +87,7 @@ class KPalette(gtk.DrawingArea):
         # Rotate tool if already selected
         if self.palitems[i] == self.selected:
             self.palitems[i] = self.__palsource[self.selected][1]
-        
+
         # Set selected tool & redraw palette (so new item shown as selected)
         self.selected = self.palitems[i]
         self.queue_draw_area(0, 4, self.__tilesize*xsize, self.__tilesize+4)

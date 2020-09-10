@@ -20,22 +20,23 @@
 from os import environ
 from os.path import join, basename, expanduser
 
+
 class KyeDefaults:
     """Class for reading, querying and saving game preferences, including the list of recently-played files and known level names."""
     known_header = "[Known Levels]"
     settings_header = "[Settings]"
-    
+
     def __init__(self):
         # Path to the config file.
         self.__cf = join(expanduser("~"), ".kye.config")
-        
+
         # Initialise.
         self.__count = 0
         self.__known = {}
         self.__orderfiles = {}
         self.__path = {}
         self.settings = {}
-        
+
         # Try reading the config file.
         try:
             s = open(self.__cf)
@@ -50,18 +51,18 @@ class KyeDefaults:
                         line = s.readline().strip()
                         if line == "":
                             break
-                        
+
                         # Format here is filename<TAB>known_level<TAB>known_level<TAB>...
                         fields = line.split("\t")
                         path = fields.pop(0)
                         filename = basename(path)
                         self.__known[filename] = fields
                         self.__path[filename] = path
-                        
+
                         # Order in the config file is the recently-used order.
                         self.__orderfiles[filename] = self.__count
                         self.__count = self.__count + 1
-                        
+
                 elif line == KyeDefaults.settings_header:
                     # Read into settings hash until we get to a blank line.
                     while 1:
@@ -71,7 +72,7 @@ class KyeDefaults:
                         key, value = line.split("\t")
                         if key == "Size":
                             self.settings[key] = value
-        
+
         except IOError, e:
             pass
 
@@ -87,7 +88,7 @@ class KyeDefaults:
         # Index by just the filename
         fname = basename(path)
         self.__path[fname] = path
-        
+
         # Remember that this is the most recently loaded level
         self.__orderfiles[fname] = self.__count
         self.__count = self.__count + 1
@@ -114,15 +115,15 @@ class KyeDefaults:
             known_names = self.__known.keys()
             known_names.sort(lambda x, y: cmp(self.__orderfiles[x], self.__orderfiles[y]))
             for name in known_names:
-                s.write(self.__path[name] + "\t" 
+                s.write(self.__path[name] + "\t"
                         + "\t".join(self.__known[name]) + "\n")
             s.write("\n")
-        
+
             # other settings
             s.write(KyeDefaults.settings_header+"\n")
             for setting,value in self.settings.iteritems():
                 s.write("%s\t%s\n" % (setting, value))
             s.write("\n")
-            
+
         except IOError, e:
             pass

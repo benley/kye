@@ -21,8 +21,11 @@
 from random import Random
 
 dirmap = ("up", "left", "right", "down")
+
+
 def direction(dx, dy):
     return dirmap[dy+1+(dx+dy+1)/2]
+
 
 class Base:
     """This is the virtual base-class for all in-game objects."""
@@ -32,7 +35,7 @@ class Base:
 
     def roundness(self):
         """Returns the 'roundness' of this object.
-        
+
         A roundness of 0 means that an object is not round (so, a rounder
         that hits it comes to a stop). 5 means that it is completely round.
         1-4,6-9 mean that only certain corners are round: see the layout of the
@@ -49,6 +52,7 @@ class Base:
         should 'think', and may change its graphic, every freq/10 seconds."""
         return 0
 
+
 class Kye(Base):
     """The Kye itself."""
     def __init__(self):
@@ -58,6 +62,7 @@ class Kye(Base):
 
     def image(self, af):
         return "kye"
+
 
 class Wall(Base):
     """There are 9 types of wall, indicated by 1..9.
@@ -76,15 +81,17 @@ class Wall(Base):
     def image(self , af):
         return "wall"+str(self.t)
 
+
 class Edible(Base):
     """Edible block object."""
     def image(self, af):
         return "blocke"
 
+
 class Diamond(Edible):
     """Object representing a diamond."""
     r = Random()        # Used purely for animation.
-    
+
     def __init__(self):
         Edible.__init__(self)
         self.state = Diamond.r.randint(1, 2)
@@ -99,6 +106,7 @@ class Diamond(Edible):
             return True
         return False
 
+
 class Thinker(Base):
     """Virtual base class for all in-game animate objects."""
 
@@ -112,7 +120,7 @@ class Thinker(Base):
 
     def think(self, game, x, y):
         """This gives the object its chance to perform any actions.
-        
+
         By default this calls self.pulltomagnet first, to allow the action of
         any magnet on the object to take effect. Only if it is not under the
         effect of a magnet, then self.act is called to allow the object to
@@ -134,7 +142,7 @@ class Thinker(Base):
         checkmagnet(game, x, y, 1, 0, state)
         checkmagnet(game, x, y, 0,-1, state)
         checkmagnet(game, x, y, 0, 1, state)
-        
+
         # If we are being pulled, move & return 1 as we have moved.
         # Else, just return whether we are stuck on a magnet.
         if x != state[1] or y != state[2]:
@@ -142,6 +150,7 @@ class Thinker(Base):
             return True
         else:
             return state[0]
+
 
 class KyeGhost(Thinker):
     """This is the ghost of a dead kye. It lasts just a few frames and them removes itself."""
@@ -163,12 +172,13 @@ class KyeGhost(Thinker):
             game.remove_at(x, y)
         return True
 
+
 class Block(Thinker):
     """Square or round moveable block. Also turning blocks and timer blocks."""
 
     def __init__(self, t, round, timer=0):
         """3 parameters:
-        
+
         t -- normally 0. -1 for an anticlockwise turner, 1 for a clockwise turner.
         round -- true if this is a round block, false otherwise.
         timer -- normally omitted, but if positive then it makes a timer block with the number indicating how long until it expires.
@@ -205,6 +215,7 @@ class Block(Thinker):
         if self.timer == 0: return False
         return (self.timer % 30) == 29
 
+
 class Sentry(Thinker):
     """This represents a sentry, or 'bouncer' as the original Kye termed them."""
     def __init__(self, idx, idy):
@@ -238,6 +249,7 @@ class Sentry(Thinker):
             game.push_object(x+dx, y+dy, dx, dy)
             self.dx, self.dy = -dx, -dy
             return True
+
 
 class Monster(Thinker):
     """All the monster types are represented by this class."""
@@ -323,9 +335,10 @@ class Monster(Thinker):
             game.remove_at(x, y)
         return True
 
+
 def checkmagnet(game, x, y, dx, dy, state):
     """Checks whether (x,y) is affected by a magnet in a given direction.
-    
+
     Checks for a magnet at (x+dx,y+dy) and (x+2*dx, y+2*dy) (if the latter
     is not obstructed). Updates the 'state' array with the result.
     """
@@ -338,6 +351,7 @@ def checkmagnet(game, x, y, dx, dy, state):
     elif isinstance(a,Magnet):
         if (a.dx != 0 and dx != 0) or (a.dy != 0 and dy != 0):
             state[0] = True;
+
 
 class Magnet(Thinker):
     """Represents a magnet (sticky block, in the original Kye)."""
@@ -376,6 +390,7 @@ class Magnet(Thinker):
 
         if state[1] != x or state[2] != y:
             game.move_object(x, y, state[1], state[2])
+
 
 class Slider(Thinker):
     """Represents a square or round slider."""
@@ -467,6 +482,7 @@ class Slider(Thinker):
 
         return False
 
+
 class Shooter(Thinker):
     """Slider shooter."""
     def __init__(self,round):
@@ -506,6 +522,7 @@ class Shooter(Thinker):
 
     def freq(self): return 7
 
+
 class BlackHole(Thinker):
     """Represents a black hole."""
     delayframes = 4
@@ -526,7 +543,7 @@ class BlackHole(Thinker):
 
     def swallow(self, g, animate = True):
         """Called whenever something might fall in. Returns true if we swallow it, false if we cannot.
-        
+
         Two parameters: the game object, and a bool (default true) which
         indicates that the black hole should do its normal reaction cycle
         (animate and be full (unable to eat) for a few cycles).

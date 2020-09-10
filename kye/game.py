@@ -21,6 +21,7 @@
 from kye.objects import *
 from kye.common import xsize, ysize
 
+
 class KGame:
     """This class holds the state of the game, and handles reading in levels from level set files and game mechanics."""
 
@@ -85,7 +86,7 @@ class KGame:
 
         self.levelnum = 0
         while 1:
-            levelname = f.readline() 
+            levelname = f.readline()
             if levelname == "" and self.levelnum == 0:
                 raise KGameFormatError
             levelname = levelname.strip().upper()
@@ -105,7 +106,7 @@ class KGame:
         board = []
         self.invalidate = []
         self.magnet_count = []
-   
+
         for i in xrange(xsize*ysize):
             board.append(None)
             self.invalidate.append(1)
@@ -134,7 +135,7 @@ class KGame:
                     # edge cells must be wall cells
                     if ctype[0] != Wall and edge:
                         ctype = (Wall, 5)
-                    
+
                     # Execute constructor for this object type, and add to the grid
                     cc = apply(ctype[0], ctype[1:])
                     self.add_at(x, y, cc)
@@ -145,7 +146,7 @@ class KGame:
                     if isinstance(cc, Kye):
                         self.kyestart = (x,y)
                         self.thekye = cc
-                    
+
                 except KeyError, e:
                     print "Unable to load %s at (%d,%d)" % (c, x, y)
 
@@ -272,7 +273,7 @@ class KGame:
 
         # Only active objects can be moved.
         if not isinstance(obj, Thinker): return False
-        
+
         # To push diagonally, need the two side squares clear
         if dx != 0 and dy != 0:
             if self.get_atB(x, ty) != None or self.get_atB(tx, y) != None:
@@ -284,7 +285,7 @@ class KGame:
             self.move_object(x, y, tx, ty)
             return True
 
-        # If moving into a black hole, destroy the object and update black hole state. 
+        # If moving into a black hole, destroy the object and update black hole state.
         elif isinstance(t,BlackHole):
             if t.swallow(self):
                 self.remove_at(x, y)
@@ -438,8 +439,10 @@ class KGame:
         # Update animation counter.
         if self.tics % 3 == 0: self.animate_frame = self.animate_frame + 1
 
+
 class KyeGameRuntimeError:
     pass
+
 
 class KGameFormatError(Exception):
     pass

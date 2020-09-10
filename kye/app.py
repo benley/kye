@@ -27,6 +27,7 @@ from kye.common import tryopen, kyepaths
 from kye.game import KGame, KGameFormatError
 from kye.input import KyeRecordedInput, KDemoFormatError, KDemoFileMismatch
 
+
 class KyeApp:
     """This class is a wrapper around the game class, which handles various extra-game actions, such as selecting whether the game is taking input from the user or a recording, loading new levels and changeover between levels."""
 
@@ -34,23 +35,23 @@ class KyeApp:
         self.__playfile = playfile
         self.__playlevel = playlevel
         self.__gamestate = "starting level"
-        
+
         self.__recto = None
         self.__playback = None
         self.__game = None
         self.__frame = None
         self.__defaults = defaults
-        
+
     def run(self, frame):
         """Run the application. You must supply a 'KFrame' for the UI."""
         self.__frame = frame
-        
+
         # Run first tick - loads the level - immediately
         self.do_tick()
         gobject.timeout_add(100, self.do_tick)
 
         self.__frame.main()
-        
+
         # End any recording going on at the time of exit.
         self.__frame.moveinput.end_record()
 
@@ -74,7 +75,7 @@ class KyeApp:
                 if self.__frame.moveinput != self.__game.ms:
                     msg = "Playback complete."
                 self.__frame.endleveldialog(self.__game.nextlevel, msg)
-            
+
             # If we are still playing, run a gametick and update the screen.
             if self.__gamestate == "playing level":
                 self.__game.dotick()
@@ -91,7 +92,7 @@ class KyeApp:
         # Clean up any previous recording/playback title & close existing record
         self.__frame.moveinput.end_record()
         self.__frame.extra_title(None)
-        
+
         # If recording this game, open the file to record to & tell the input system about it
         rng = Random()
         try:
@@ -99,11 +100,11 @@ class KyeApp:
                 self.__frame.moveinput.record_to(self.__recto, playfile = self.__playfile, playlevel = self.__playlevel, rng = rng)
         except IOError, e:
             self.__frame.error_message(message="Failed to write to "+self.__recto)
- 
+
         self.__recto = None
         if self.__frame.moveinput.is_recording():
             self.__frame.extra_title("Recording")
- 
+
         # If playing a demo, open it & read the header
         self.__frame.moveinput.clear()
         move_source = self.__frame.moveinput
@@ -120,18 +121,18 @@ class KyeApp:
             except IOError, e:
                 self.__frame.error_message(message="Failed to read "+self.__playback)
             self.__playback = None
-        
+
         # Now try loading the actual level
         try:
             gamefile = tryopen(self.__playfile, kyepaths)
- 
+
             # Create the game state object.
             self.__game = KGame(gamefile, want_level = self.__playlevel,
                                 movesource = move_source, rng = rng)
- 
+
             # And remember that we have reached this level.
             self.__defaults.add_known(self.__playfile, self.__game.thislev)
- 
+
             # UI updates - level name in window title, hint in the status bar.
             self.__frame.level_title(self.__game.thislev)
             self.__frame.stbar.update(hint=self.__game.hint, levelnum=self.__game.levelnum)
@@ -167,4 +168,3 @@ class KyeApp:
     def known_levels(self):
         """Returns a list of levels that the player knows about from this level set."""
         return self.__defaults.get_known_levels(basename(self.__playfile))
-
