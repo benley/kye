@@ -1,0 +1,8 @@
+include COPYING
+include NEWS
+include README
+include levels/*.kye
+include images.tar.gz
+include kye-*icon.png
+include kye.spec
+include MANIFEST.in

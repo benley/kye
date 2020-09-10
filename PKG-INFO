@@ -1,0 +1,16 @@
+Metadata-Version: 1.0
+Name: kye
+Version: 1.0
+Summary: Clone of Kye puzzle game
+Home-page: http://games.moria.org.uk/kye/pygtk
+Author: Colin Phipps
+Author-email: cph@moria.org.uk
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Topic :: Games/Entertainment :: Puzzle Games
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Programming Language :: Python
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: User Interface :: Graphical :: Gnome
