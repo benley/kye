@@ -28,7 +28,13 @@ from os import unlink, fdopen
 from kye.common import kyepaths, tryopen
 from kye.canvas import KCanvas
 from kye.palette import KPalette
-from kye.dialogs import KyeHelpDialog, KyeAboutDialog, llabel, getopendialog, kyeffilter
+from kye.dialogs import (
+    KyeHelpDialog,
+    KyeAboutDialog,
+    llabel,
+    getopendialog,
+    kyeffilter,
+)
 from kye.leveledit import KLevelEdit
 
 ui_string = """<ui>
@@ -236,9 +242,9 @@ class KEditor(gtk.Window):
     def setlevels(self, levels, cur):
         """Sets the list of levels in the menu."""
         # Remove any existing level list
-        if self.levels_ui_mid != None:
+        if self.levels_ui_mid is not None:
             self.ui.remove_ui(self.levels_ui_mid)
-        if self.levels_ag != None:
+        if self.levels_ag is not None:
             self.ui.remove_action_group(self.levels_ag)
         self.levels_ui_mid = self.levels_ag = None
 

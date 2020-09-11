@@ -84,7 +84,7 @@ class KyeHelpDialog(gtk.Dialog):
         table = gtk.Table(15, 2)
         self.vbox.pack_start(table, True, True, 0)
         table.attach(pbimage(getimage("kye")), 0, 1, 0, 1)
-        table.attach(llabel("You are Kye. Move by point-and-click with the mouse, or the arrow keys or numeric keypad on the keyboard (note that you can move diagonally, even using the keyboard)."),1,2,0,1)
+        table.attach(llabel("You are Kye. Move by point-and-click with the mouse, or the arrow keys or numeric keypad on the keyboard (note that you can move diagonally, even using the keyboard)."), 1, 2, 0, 1)
         table.attach(pbimage(getimage("diamond_1")), 0, 1, 1, 2)
         table.attach(llabel("The object of the game is to collect all the diamonds."), 1, 2, 1, 2)
         table.attach(pbimage(getimage("wall5")), 0, 1, 2, 3)
