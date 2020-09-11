@@ -119,9 +119,12 @@ class KCanvas(gtk.DrawingArea):
                 raise KeyError("Incomplete image for %s" % tilename)
 
             # Add in the white background.
-            i = i.composite_color_simple(tilesize, tilesize, gtk.gdk.INTERP_BILINEAR, 255, tilesize, 0xffffffL, 0xffffffL)
+            i = i.composite_color_simple(
+                tilesize, tilesize, gtk.gdk.INTERP_BILINEAR, 255, tilesize,
+                0xffffff, 0xffffff)
 
-            # Adding an alpha channel seems to help it work with some image formats/colour depths.
+            # Adding an alpha channel seems to help it work with some image
+            # formats/colour depths.
             i = i.add_alpha(False, '\x00', '\x00', '\x00')
 
             # Cache if this is the useful size for us.
@@ -166,7 +169,7 @@ class KCanvas(gtk.DrawingArea):
                     if (j+1)*tilesize <= y or j*tilesize > y+height:
                         continue
                     self.drawcell(gc, i, j)
-        except KeyError, e:
+        except KeyError as e:
             md = gtk.MessageDialog(
                 type=gtk.MESSAGE_ERROR,
                 message_format="Tileset is missing image for %s" % e,
