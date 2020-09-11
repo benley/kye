@@ -55,6 +55,7 @@ class Base:
 
 class Kye(Base):
     """The Kye itself."""
+
     def __init__(self):
         Base.__init__(self)
         self.lives = 3
@@ -75,15 +76,17 @@ class Wall(Base):
         self.t = t
 
     def roundness(self):
-        if self.t == 5: return 0
+        if self.t == 5:
+            return 0
         return self.t
 
-    def image(self , af):
+    def image(self, af):
         return "wall"+str(self.t)
 
 
 class Edible(Base):
     """Edible block object."""
+
     def image(self, af):
         return "blocke"
 
@@ -126,8 +129,9 @@ class Thinker(Base):
         effect of a magnet, then self.act is called to allow the object to
         act."""
         if game.magnet_count[30*y + x] > 0:
-            if self.pulltomagnet(game, x, y): return self.autoanim
-        return self.act(game, x , y)
+            if self.pulltomagnet(game, x, y):
+                return self.autoanim
+        return self.act(game, x, y)
 
     def act(self, game, x, y):
         return self.autoanim
@@ -138,10 +142,10 @@ class Thinker(Base):
         # state[0] is set to true if we are stuck on a magnet
         # stare[1,2] is the location we are to be pulled to by a magnet
         state = [False, x, y]
-        checkmagnet(game, x, y,-1, 0, state)
-        checkmagnet(game, x, y, 1, 0, state)
-        checkmagnet(game, x, y, 0,-1, state)
-        checkmagnet(game, x, y, 0, 1, state)
+        checkmagnet(game, x, y, -1,  0, state)
+        checkmagnet(game, x, y,  1,  0, state)
+        checkmagnet(game, x, y,  0, -1, state)
+        checkmagnet(game, x, y,  0,  1, state)
 
         # If we are being pulled, move & return 1 as we have moved.
         # Else, just return whether we are stuck on a magnet.
@@ -185,12 +189,14 @@ class Block(Thinker):
         """
         Thinker.__init__(self)
         self.timer = 0
-        if timer: self.timer = timer*30 + 25
+        if timer:
+            self.timer = timer*30 + 25
         self.round = round
         self.__turn = t
 
     def roundness(self):
-        if self.round: return 5
+        if self.round:
+            return 5
         return 0
 
     def turn(self):
@@ -198,10 +204,14 @@ class Block(Thinker):
         return self.__turn
 
     def image(self, af):
-        if self.timer > 0: return "block_timer_"+str(self.timer//30)
-        if self.round: return "blockr"
-        if self.__turn == -1: return "turner_anticlockwise"
-        if self.__turn == 1: return "turner_clockwise"
+        if self.timer > 0:
+            return "block_timer_%s" % (self.timer//30)
+        if self.round:
+            return "blockr"
+        if self.__turn == -1:
+            return "turner_anticlockwise"
+        if self.__turn == 1:
+            return "turner_clockwise"
         return "block"
 
     def think(self, game, x, y):
@@ -212,12 +222,14 @@ class Block(Thinker):
                 game.remove_at(x, y)
         if game.magnet_count[30*y + x] > 0:
             self.pulltomagnet(game, x, y)
-        if self.timer == 0: return False
+        if self.timer == 0:
+            return False
         return (self.timer % 30) == 29
 
 
 class Sentry(Thinker):
     """This represents a sentry, or 'bouncer' as the original Kye termed them."""
+
     def __init__(self, idx, idy):
         Thinker.__init__(self)
         self.dx = idx
@@ -241,7 +253,7 @@ class Sentry(Thinker):
             # else drop through - we can push a full blackhole.
 
         # If there is nothing ahead, move ahead
-        if t == None:
+        if t is None:
             game.move_object(x, y, x+dx, y+dy)
             return False
         else:
@@ -256,13 +268,14 @@ class Monster(Thinker):
     r = Random()
     names = ("gnasher", "twister", "spike", "snake", "blob")
 
-    def __init__(self,type):
+    def __init__(self, type):
         """Creating a monster, one parameter: an int, 0..4, giving the type."""
         Thinker.__init__(self)
         self.type = type
         self.frames = 2
-        if type == 4: self.frames=4
-        self.frame = Monster.r.randint(1,self.frames)
+        if type == 4:
+            self.frames = 4
+        self.frame = Monster.r.randint(1, self.frames)
         self.autoanim = True
 
     def image(self, af):
@@ -280,58 +293,58 @@ class Monster(Thinker):
             # I wander lonely as a cloud...
             d = game.nextrand(5)
             if d == 0:
-                tx,ty = x-1, y
+                tx, ty = x-1, y
             elif d == 1:
-                tx,ty = x+1, y
+                tx, ty = x+1, y
             elif d == 2:
-                tx,ty = x, y-1
+                tx, ty = x, y-1
             elif d == 3:
-                tx,ty = x, y+1
+                tx, ty = x, y+1
             elif d == 4:
-                return True # Don't move at all
+                return True  # Don't move at all
             wandering = True
         else:
             # Advance towards kye
             try:
-                kx,ky = game.find_kye()
-            except KeyError, e:
-                return True # No Kye available
+                kx, ky = game.find_kye()
+            except KeyError:
+                return True  # No Kye available
             wandering = False
             dx = kx - x
             dy = ky - y
 
             # Step towards Kye. Really missing the ternary operator here...
-            # Always step dy (up/down) in preference, as the orignial game does
+            # Always step dy (up/down) in preference, as the original game does
             if dy == 0:
                 if dx > 0:
-                    tx,ty = x+1, y
+                    tx, ty = x+1, y
                 else:
-                    tx,ty = x-1, y
+                    tx, ty = x-1, y
             else:
                 if dy > 0:
-                    tx,ty = x, y+1
+                    tx, ty = x, y+1
                 else:
-                    tx,ty = x, y-1
+                    tx, ty = x, y-1
 
             # See if we can move that way.
-            if game.get_at(tx,ty) != None:
+            if game.get_at(tx, ty) is not None:
                 # Try the other direction
                 if tx == x and dx != 0:
                     if dx > 0:
-                        tx,ty = x+1, y
+                        tx, ty = x+1, y
                     else:
-                        tx,ty = x-1, y
+                        tx, ty = x-1, y
                 elif ty == y and dy != 0:
                     if dy > 0:
-                        tx,ty = x, y+1
+                        tx, ty = x, y+1
                     else:
-                        tx,ty = x, y-1
+                        tx, ty = x, y-1
 
         # Now try to move to (tx,ty). We only fall into black holes if moving randomely.
-        t = game.get_at(tx,ty)
-        if t == None:
-            game.move_object(x, y,tx,ty)
-        elif wandering and isinstance(t,BlackHole) and t.swallow(game):
+        t = game.get_at(tx, ty)
+        if t is None:
+            game.move_object(x, y, tx, ty)
+        elif wandering and isinstance(t, BlackHole) and t.swallow(game):
             game.remove_at(x, y)
         return True
 
@@ -343,35 +356,37 @@ def checkmagnet(game, x, y, dx, dy, state):
     is not obstructed). Updates the 'state' array with the result.
     """
     a = game.get_atB(x+dx, y+dy)
-    if a == None:
+    if a is None:
         b = game.get_atB(x+2*dx, y+2*dy)
-        if isinstance(b,Magnet):
+        if isinstance(b, Magnet):
             if (b.dx != 0 and dx != 0) or (b.dy != 0 and dy != 0):
                 state[1:2] = x+dx, y+dy
-    elif isinstance(a,Magnet):
+    elif isinstance(a, Magnet):
         if (a.dx != 0 and dx != 0) or (a.dy != 0 and dy != 0):
-            state[0] = True;
+            state[0] = True
 
 
 class Magnet(Thinker):
     """Represents a magnet (sticky block, in the original Kye)."""
+
     def __init__(self, idx, idy):
         Thinker.__init__(self)
         self.dx = idx
         self.dy = idy
 
     def image(self, af):
-        if self.dx == 0: return "sticky_vertical"
+        if self.dx == 0:
+            return "sticky_vertical"
         return "sticky_horizontal"
 
     def think(self, game, x, y):
         return self.act(game, x, y)
 
     def act(self, game, x, y):
-        dx,dy = self.dx,self.dy
-        if isinstance(game.get_atB(x-2*dx, y-2*dy),Kye) and game.get_atB(x-dx, y-dy) == None:
+        dx, dy = self.dx, self.dy
+        if isinstance(game.get_atB(x-2*dx, y-2*dy), Kye) and game.get_atB(x-dx, y-dy) is None:
             game.move_object(x, y, x-dx, y-dy)
-        elif isinstance(game.get_atB(x+2*dx, y+2*dy),Kye) and game.get_atB(x+dx, y+dy) == None:
+        elif isinstance(game.get_atB(x+2*dx, y+2*dy), Kye) and game.get_atB(x+dx, y+dy) is None:
             game.move_object(x, y, x+dx, y+dy)
         else:
             self.pulltomagnet(game, x, y)
@@ -379,14 +394,14 @@ class Magnet(Thinker):
 
     def pulltomagnet(self, game, x, y):
         """This handles the special case of magnets pulling magnets."""
-        state=[False, x, y]
+        state = [False, x, y]
 
         if self.dx == 0:
-            checkmagnet(game, x, y,-1, 0, state)
-            checkmagnet(game, x, y, 1, 0, state)
+            checkmagnet(game, x, y, -1, 0, state)
+            checkmagnet(game, x, y,  1, 0, state)
         else:
-            checkmagnet(game, x, y, 0,-1, state)
-            checkmagnet(game, x, y, 0, 1, state)
+            checkmagnet(game, x, y, 0, -1, state)
+            checkmagnet(game, x, y, 0,  1, state)
 
         if state[1] != x or state[2] != y:
             game.move_object(x, y, state[1], state[2])
@@ -402,21 +417,23 @@ class Slider(Thinker):
         self.round = ir
 
     def roundness(self):
-        if self.round: return 5
+        if self.round:
+            return 5
         return 0
 
     def image(self, af):
         i = "slider_"
-        if self.round: i="rocky_"
+        if self.round:
+            i = "rocky_"
         i = i + direction(self.dx, self.dy)
         return i
 
     def act(self, game, x, y):
-        dx,dy = self.dx,self.dy
+        dx, dy = self.dx, self.dy
 
         # Try moving forward. Move into space, fall into black holes.
         t = game.get_atB(x+dx, y+dy)
-        if t == None:
+        if t is None:
             game.move_object(x, y, x+dx, y+dy)
         elif isinstance(t, BlackHole):
             if t.swallow(game):
@@ -433,33 +450,43 @@ class Slider(Thinker):
             # Round sliders can roll round rounded obstacles.
             if self.round:
                 tr = t.roundness()
-                if tr == 0: return False
+                if tr == 0:
+                    return False
 
                 # Rocky hitting a rounded surface - which ways can it deflect
-                plus,minus = False,False
+                plus, minus = False, False
                 if dx != 0:
                     if tr % 3 == 2 or (tr+dx) % 3 == 2:
                         minus = tr > 3
                         plus = tr < 7
-                else: # dy != 0
+                else:  # dy != 0
                     if tr < 4 or tr > 6:
                         tr -= 3*dy
-                    if   tr == 4: plus,minus = False,True
-                    elif tr == 5: plus,minus = True,True
-                    elif tr == 6: plus,minus = True,False
+                    if tr == 4:
+                        plus, minus = False, True
+                    elif tr == 5:
+                        plus, minus = True, True
+                    elif tr == 6:
+                        plus, minus = True, False
 
                 # Obstacle is not rounded on either corner facing us - we are stuck
-                if not plus and not minus: return False
+                if not plus and not minus:
+                    return False
 
                 if dx != 0:
-                    if plus and (game.get_atB(x,y+1) != None or game.get_atB(x+dx,y+1) != None): plus = False
-                    if minus and (game.get_atB(x,y-1) != None or game.get_atB(x+dx,y-1) != None): minus = False
-                else: # dy != 0
-                    if plus and (game.get_atB(x+1,y) != None or game.get_atB(x+1,y+dy) != None): plus = False
-                    if minus and (game.get_atB(x-1,y) != None or game.get_atB(x-1,y+dy) != None): minus = False
+                    if plus and (game.get_atB(x, y+1) is not None or game.get_atB(x+dx, y+1) is not None):
+                        plus = False
+                    if minus and (game.get_atB(x, y-1) is not None or game.get_atB(x+dx, y-1) is not None):
+                        minus = False
+                else:  # dy != 0
+                    if plus and (game.get_atB(x+1, y) is not None or game.get_atB(x+1, y+dy) is not None):
+                        plus = False
+                    if minus and (game.get_atB(x-1, y) is not None or game.get_atB(x-1, y+dy) is not None):
+                        minus = False
 
                 # No way forward due to target square(s) being occupied - stuck
-                if not plus and not minus: return False
+                if not plus and not minus:
+                    return False
 
                 # If both ways forwand are possible, choose randomely
                 if plus and minus:
@@ -469,13 +496,17 @@ class Slider(Thinker):
                         minus = False
 
                 # Work out which square that corresponds to
-                tdx, tdy = dx,dy
+                tdx, tdy = dx, dy
                 if plus:
-                    if tdx != 0: tdy = dy+1
-                    else: tdx = dx+1
+                    if tdx != 0:
+                        tdy = dy+1
+                    else:
+                        tdx = dx+1
                 else:
-                    if tdx != 0: tdy = dy-1
-                    else: tdx = dx-1
+                    if tdx != 0:
+                        tdy = dy-1
+                    else:
+                        tdx = dx-1
 
                 # And move into it.
                 game.move_object(x, y, x+tdx, y+tdy)
@@ -485,7 +516,8 @@ class Slider(Thinker):
 
 class Shooter(Thinker):
     """Slider shooter."""
-    def __init__(self,round):
+
+    def __init__(self, round):
         """One parameter, boolean - does this shoot round sliders (false -> square)."""
         Thinker.__init__(self)
         self.__round = round
@@ -496,14 +528,20 @@ class Shooter(Thinker):
         self.__dx = 0
         self.__dy = 0
 
-        if   ang == 0: self.__dy =-1
-        elif ang == 1: self.__dx =-1
-        elif ang == 2: self.__dy = 1
-        elif ang == 3: self.__dx = 1
+        if ang == 0:
+            self.__dy = -1
+        elif ang == 1:
+            self.__dx = -1
+        elif ang == 2:
+            self.__dy = 1
+        elif ang == 3:
+            self.__dx = 1
 
     def image(self, af):
-        if self.__round: return "rocky_shooter_"+direction(self.__dx, self.__dy)
-        else: return "slider_shooter_"+direction(self.__dx, self.__dy)
+        if self.__round:
+            return "rocky_shooter_%s" % direction(self.__dx, self.__dy)
+        else:
+            return "slider_shooter_%s" % direction(self.__dx, self.__dy)
 
     def think(self, game, x, y):
         dy = -self.__dx
@@ -514,7 +552,7 @@ class Shooter(Thinker):
         self.__waiting = self.__waiting+1
 
         b = game.get_atB(x+dx, y+dy)
-        if self.__waiting > y and b == None:
+        if self.__waiting > y and b is None:
             game.add_at(x+dx, y+dy, Slider(dx, dy, self.__round))
             self.__waiting = 0
         self.pulltomagnet(game, x, y)
@@ -537,18 +575,21 @@ class BlackHole(Thinker):
 
     def think(self, game, x, y):
         self.frame = self.frame + 1
-        if self.frame == 4: self.frame = 0
-        if self.delay > 0: self.delay = self.delay - 1
+        if self.frame == 4:
+            self.frame = 0
+        if self.delay > 0:
+            self.delay = self.delay - 1
         return True
 
-    def swallow(self, g, animate = True):
+    def swallow(self, g, animate=True):
         """Called whenever something might fall in. Returns true if we swallow it, false if we cannot.
 
         Two parameters: the game object, and a bool (default true) which
         indicates that the black hole should do its normal reaction cycle
         (animate and be full (unable to eat) for a few cycles).
         """
-        if self.delay > 1: return False
+        if self.delay > 1:
+            return False
         if animate:
             self.delay = BlackHole.delayframes + 1
             g.invalidate_me(self)
@@ -557,19 +598,22 @@ class BlackHole(Thinker):
     def image(self, af):
         if self.delay > 0:
             df = BlackHole.delayframes + 1 - self.delay
-            if df <= 0: df = 1
+            if df <= 0:
+                df = 1
             return "black_hole_swallow_"+str(df)
         return "black_hole_"+str(self.frame+1)
 
+
 class OneWay(Base):
     """Represents a one-way door."""
+
     def __init__(self, dx, dy):
         """Parameters to create a black hole: dx, dy, which define its allowed direction."""
         self.dx = dx
         self.dy = dy
 
     def image(self, af):
-        return "oneway_"+direction(self.dx, self.dy)+"_"+str(1+(af%2))
+        return "oneway_%s_%s" % (direction(self.dx, self.dy), 1+(af % 2))
 
     def allow_move(self, dx, dy):
         """This checks a possible move onto the black hole and returns true if it matches the door's allowed direction."""

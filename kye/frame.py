@@ -71,7 +71,7 @@ class KFrame(gtk.Window):
         """Handle window destroy by exiting GUI."""
         gtk.main_quit()
 
-    def build_ui(self, tilesize = 16):
+    def build_ui(self, tilesize=16):
         """Build the menus and shortcut keys."""
         action_group = gtk.ActionGroup('WindowActions')
 
@@ -87,7 +87,7 @@ class KFrame(gtk.Window):
                 ("Play recording", None, "_Play recording…", None, "Play back a previously made recording of a level", self.playdemo),
                 ("ViewMenu", None, "_View"),
                 ("HelpMenu", None, "_Help"),
-                ("The Game", gtk.STOCK_HELP, "_The Game","<control>T", "Help for playing the game", self.helpdialog),
+                ("The Game", gtk.STOCK_HELP, "_The Game", "<control>T", "Help for playing the game", self.helpdialog),
                 ("About Kye", gtk.STOCK_ABOUT, "About _Kye", "<control>K", "About Python Kye", self.aboutdialog),
         ]
         radio_actions = [
@@ -104,9 +104,9 @@ class KFrame(gtk.Window):
         self.add_accel_group(self.ui.get_accel_group())
         self.ignore_sizing = False
 
-    def __init__(self, app, settings, recentlevels = []):
+    def __init__(self, app, settings, recentlevels=[]):
         if gtk.pygtk_version[0] < 2 or gtk.pygtk_version[1] < 4:
-            raise EnvironmentError, "Needs at least pygtk-2.4.0"
+            raise EnvironmentError("Needs at least pygtk-2.4.0")
         # create a new window
         gtk.Window.__init__(self, gtk.WINDOW_TOPLEVEL)
 
@@ -134,7 +134,7 @@ class KFrame(gtk.Window):
             tilesize = int(settings["Size"])
         try:
             self.canvas = KCanvas(self.moveinput, tilesize)
-        except (IOError, OSError), e:
+        except (IOError, OSError) as e:
             self.error_message("%s" % e)
             raise
 
@@ -143,7 +143,7 @@ class KFrame(gtk.Window):
         self.main_vbox.set_border_width(1)
 
         # Build menu
-        self.build_ui(tilesize = tilesize)
+        self.build_ui(tilesize=tilesize)
         self.menubar = self.ui.get_widget('/KyeMenuBar')
         self.main_vbox.pack_start(self.menubar, False, True, 0)
         self.menubar.show()
@@ -184,9 +184,9 @@ class KFrame(gtk.Window):
         """Set an addition to the window title after the level name."""
         try:
             del self.__title[2]
-        except IndexError, e:
+        except IndexError:
             pass
-        if extitle != None:
+        if extitle is not None:
             self.__title.append(extitle)
         self.__set_title()
 
@@ -195,18 +195,21 @@ class KFrame(gtk.Window):
         self.recent_levels = recentlevels
 
         # Remove any existing level list
-        if self.recent_ui_mid != None:
+        if self.recent_ui_mid is not None:
             self.ui.remove_ui(self.recent_ui_mid)
-        if self.recent_ag != None:
+        if self.recent_ag is not None:
             self.ui.remove_action_group(self.recent_ag)
         self.recent_ui = None
 
         # Build extra menu items, and their actions, for level selection
         action_group = gtk.ActionGroup("RecentActions")
         actions = []
-        uistring = """<ui><menubar name='KyeMenuBar'><menu action='FileMenu'><menu action='RecentMenu'>"""
+        uistring = ("<ui><menubar name='KyeMenuBar'>"
+                    "<menu action='FileMenu'>"
+                    "<menu action='RecentMenu'>")
         for n, filename in enumerate(recentlevels):
-            actions.append(("Recent%d" % n, None, basename(filename), None, "Open "+filename, self.open_recent))
+            actions.append(("Recent%d" % n, None, basename(filename), None,
+                            "Open %s" % filename, self.open_recent))
             uistring = uistring + "<menuitem action='Recent%d' />" % n
         uistring = uistring + "</menu></menu></menubar></ui>"
         action_group.add_actions(actions)
@@ -234,8 +237,11 @@ class KFrame(gtk.Window):
     def playdemo(self, w):
         """Let the user select a recording to play back."""
         filesel = gtk.FileChooserDialog("Choose Kye Recording",
-            action=gtk.FILE_CHOOSER_ACTION_OPEN,
-            buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+                                        action=gtk.FILE_CHOOSER_ACTION_OPEN,
+                                        buttons=(gtk.STOCK_OK,
+                                                 gtk.RESPONSE_OK,
+                                                 gtk.STOCK_CANCEL,
+                                                 gtk.RESPONSE_REJECT))
         filesel.add_filter(kyerfilter())
         response = filesel.run()
         if response == gtk.RESPONSE_OK:
@@ -248,19 +254,22 @@ class KFrame(gtk.Window):
     def record(self, w):
         """Restart the current level with recording, after asking the user for a filename."""
         filesel = gtk.FileChooserDialog("Save Kye Recording",
-            action=gtk.FILE_CHOOSER_ACTION_SAVE,
-            buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+                                        action=gtk.FILE_CHOOSER_ACTION_SAVE,
+                                        buttons=(gtk.STOCK_OK,
+                                                 gtk.RESPONSE_OK,
+                                                 gtk.STOCK_CANCEL,
+                                                 gtk.RESPONSE_REJECT))
         filesel.add_filter(kyerfilter())
         filesel.set_current_name(".kyr")
         try:
             filesel.set_do_overwrite_confirmation(True)
-        except AttributeError, e:
+        except AttributeError:
             pass
         response = filesel.run()
         if response == gtk.RESPONSE_OK:
             filename = filesel.get_filename()
             filesel.destroy()
-            self.__app.restart(recordto = filename)
+            self.__app.restart(recordto=filename)
         else:
             filesel.destroy()
 
@@ -274,7 +283,7 @@ class KFrame(gtk.Window):
 
     def startgoto(self, w):
         """Let the user select or type a level to go to, and jump to that level."""
-        gd = GotoDialog(parent=self, knownlevs = self.__app.known_levels())
+        gd = GotoDialog(parent=self, knownlevs=self.__app.known_levels())
         r = gd.run()
         t = gd.get_level()
         gd.destroy()
@@ -300,13 +309,17 @@ class KFrame(gtk.Window):
             end_title = "All levels completed."
             nextlevelmsg = "Returning to first level"
 
-        md = gtk.MessageDialog(self, gtk.DIALOG_MODAL, buttons=gtk.BUTTONS_OK, message_format=end_title)
+        md = gtk.MessageDialog(self, type=gtk.DIALOG_MODAL,
+                               buttons=gtk.BUTTONS_OK,
+                               message_format=end_title)
         md.format_secondary_markup(endmsg)
         md.run()
         md.destroy()
 
         # Now the starting-level dialog.
-        md = gtk.MessageDialog(self, gtk.DIALOG_MODAL, buttons=gtk.BUTTONS_OK, message_format=nextlevelmsg)
+        md = gtk.MessageDialog(self, type=gtk.DIALOG_MODAL,
+                               buttons=gtk.BUTTONS_OK,
+                               message_format=nextlevelmsg)
         md.run()
         md.destroy()
 
@@ -320,14 +333,15 @@ class KFrame(gtk.Window):
 
     def aboutdialog(self, a):
         """Show the about dialog box."""
-        ad = KyeAboutDialog(kimg = self.canvas.get_image("kye"))
+        ad = KyeAboutDialog(kimg=self.canvas.get_image("kye"))
         ad.run()
         ad.destroy()
 
     def error_message(self, message):
         """Show an error message in a dialog box."""
         md = gtk.MessageDialog(parent=self, type=gtk.MESSAGE_ERROR,
-            message_format=message, buttons=gtk.BUTTONS_OK)
+                               message_format=message,
+                               buttons=gtk.BUTTONS_OK)
         md.run()
         md.destroy()
 

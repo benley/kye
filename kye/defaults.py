@@ -17,7 +17,6 @@
 #
 """kye.defaults - contains the KyeDefaults class."""
 
-from os import environ
 from os.path import join, basename, expanduser
 
 
@@ -73,7 +72,7 @@ class KyeDefaults:
                         if key == "Size":
                             self.settings[key] = value
 
-        except IOError, e:
+        except IOError:
             pass
 
     def get_known_levels(self, path):
@@ -121,9 +120,9 @@ class KyeDefaults:
 
             # other settings
             s.write(KyeDefaults.settings_header+"\n")
-            for setting,value in self.settings.iteritems():
+            for setting, value in self.settings.iteritems():
                 s.write("%s\t%s\n" % (setting, value))
             s.write("\n")
 
-        except IOError, e:
+        except IOError:
             pass

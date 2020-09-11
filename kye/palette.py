@@ -26,6 +26,7 @@ from kye.common import xsize, ysize
 
 class KPalette(gtk.DrawingArea):
     """Provides  object selection palette widget for the editor."""
+
     def __init__(self, palsource):
         # Misc initial state
         self.mousedown = None
@@ -96,32 +97,41 @@ class KPalette(gtk.DrawingArea):
 
     def palette_click_event(self, window, event):
         """Acts on a click on the palette."""
-        if event.type != gtk.gdk.BUTTON_PRESS: return
+        if event.type != gtk.gdk.BUTTON_PRESS:
+            return
         x, y, mods = event.window.get_pointer()
         y = y - 4
-        if y < 0: return
+        if y < 0:
+            return
         x = x / (self.__tilesize+4)
         if x < len(self.palitems):
             self.click_item(x)
 
-    def expose(self,window,event):
+    def expose(self, window, event):
         """Handle redraws."""
         gc = self.window.new_gc()
         gc.set_fill(gtk.gdk.SOLID)
         gc.set_function(gtk.gdk.COPY)
-        self.window.draw_rectangle(self.style.black_gc, True, 0, 0, self.__tilesize*xsize, 4)
-        self.window.draw_rectangle(self.style.white_gc, True, 0, 4, self.__tilesize*xsize, self.__tilesize+4)
+        self.window.draw_rectangle(self.style.black_gc, True, 0, 0,
+                                   self.__tilesize*xsize, 4)
+        self.window.draw_rectangle(self.style.white_gc, True, 0, 4,
+                                   self.__tilesize*xsize, self.__tilesize+4)
         x = 0
         for i in self.palitems:
             if i == self.selected:
-                self.window.draw_rectangle(self.style.bg_gc[gtk.STATE_SELECTED],True, x, 4,self.__tilesize+4,self.__tilesize+4)
-            self.window.draw_pixbuf(gc, self.__getimage(self.__palsource[i][0]), 0, 0, 2+x, 6, self.__tilesize, self.__tilesize, gtk.gdk.RGB_DITHER_NORMAL, 0, 0)
+                self.window.draw_rectangle(
+                    self.style.bg_gc[gtk.STATE_SELECTED],
+                    True, x, 4, self.__tilesize+4, self.__tilesize+4)
+            self.window.draw_pixbuf(
+                gc, self.__getimage(self.__palsource[i][0]),
+                0, 0, 2+x, 6, self.__tilesize, self.__tilesize,
+                gtk.gdk.RGB_DITHER_NORMAL, 0, 0)
             x = x + 4 + self.__tilesize
 
     # These are events passed from the canvas
     def button_press_event(self, button, x, y):
         """Handle mouse press event."""
-        if self.mousedown == None:
+        if self.mousedown is None:
             self.mousebuttondown = button
             self.mousedown = (x, y)
             self.set_at(x, y, self.mousebuttondown)
@@ -133,8 +143,9 @@ class KPalette(gtk.DrawingArea):
 
     def mouse_motion_event(self, x, y):
         """Handle mouse motion event."""
-        if x > xsize or y > ysize or x < 0 or y < 0: return
-        if self.mousedown != None:
+        if x > xsize or y > ysize or x < 0 or y < 0:
+            return
+        if self.mousedown is not None:
             if x != self.mousedown[0] or y != self.mousedown[1]:
                 self.set_at(x, y, self.mousebuttondown)
                 self.mousedown = (x, y)

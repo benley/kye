@@ -26,6 +26,7 @@ import gtk
 
 class StatusBarKyes(gtk.DrawingArea):
     """Small gtk DrawingArea-derived widget for the bottom-left of the game display, showing lives left."""
+
     def __init__(self, kyeimg):
         gtk.DrawingArea.__init__(self)
         self.set_size_request(20*3+4, 20)
@@ -33,16 +34,18 @@ class StatusBarKyes(gtk.DrawingArea):
         self.connect("expose-event", self.expose)
         self.__kyes = None
 
-    def expose(self, window,event):
+    def expose(self, window, event):
         """Handle redraws."""
         gc = self.window.new_gc()
         gc.set_fill(gtk.gdk.SOLID)
         gc.set_function(gtk.gdk.COPY)
-        self.window.draw_rectangle(self.style.bg_gc[gtk.STATE_NORMAL], True, 0, 0, 20*3+4, 20)
-        if self.__kyes != None:
+        self.window.draw_rectangle(self.style.bg_gc[gtk.STATE_NORMAL],
+                                   True, 0, 0, 20*3+4, 20)
+        if self.__kyes is not None:
             for n in range(self.__kyes):
                 self.window.draw_pixbuf(gc, self.__kyeimg, 0, 0, 20*n+2, 2,
-                    self.__kyeimg.get_width(), self.__kyeimg.get_height())
+                                        self.__kyeimg.get_width(),
+                                        self.__kyeimg.get_height())
 
     def update(self, num_kyes):
         """Set the number of kye lives to show; schedules a redraw if needed."""
@@ -54,9 +57,9 @@ class StatusBarKyes(gtk.DrawingArea):
 class StatusBar(gtk.HBox):
     """Gtk widget for the Kye status bar."""
     string_map = {
-        "diamonds"  :   "Diamonds left",
-        "levelnum"  :   "Level",
-        "hint"      :   "Hint"
+        "diamonds": "Diamonds left",
+        "levelnum": "Level",
+        "hint": "Hint"
     }
 
     def __init__(self, kyeimg):
@@ -87,8 +90,10 @@ class StatusBar(gtk.HBox):
             if k == "hint":
                 self.__hint_eventbox.set_tooltip_text(value)
 
-            # The string labels we update; the kye count, we pass to the special kyes widget.
+            # The string labels we update; the kye count, we pass to the
+            # special kyes widget.
             if k in StatusBar.string_map:
-                self.__dict__[k].set_text("%s: %s" % (StatusBar.string_map[k], str(value)))
+                self.__dict__[k].set_text(
+                    "%s: %s" % (StatusBar.string_map[k], value))
             elif k == "kyes":
                 self.__kyes_widget.update(value)

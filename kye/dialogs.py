@@ -25,10 +25,18 @@ import gtk
 from os.path import exists
 from kye.common import kyepaths, version
 
+
 class GotoDialog(gtk.Dialog):
     """A dialog box for the player to select or type a level name to go to."""
-    def __init__(self, parent=None, knownlevs = ()):
-        gtk.Dialog.__init__(self, title="Go to level", parent = parent,flags = gtk.DIALOG_MODAL, buttons=(gtk.STOCK_OK, gtk.RESPONSE_ACCEPT, gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+
+    def __init__(self, parent=None, knownlevs=()):
+        gtk.Dialog.__init__(self, title="Go to level",
+                            parent=parent,
+                            flags=gtk.DIALOG_MODAL,
+                            buttons=(gtk.STOCK_OK,
+                                     gtk.RESPONSE_ACCEPT,
+                                     gtk.STOCK_CANCEL,
+                                     gtk.RESPONSE_REJECT))
         self.set_default_response(gtk.RESPONSE_ACCEPT)
 
         # Add prompt.
@@ -49,18 +57,21 @@ class GotoDialog(gtk.Dialog):
         """Returns the selected level name."""
         return self.cb.child.get_text()
 
+
 def pbimage(img):
     """Make a gtk.Image from a pixbuf."""
     i = gtk.Image()
     i.set_from_pixbuf(img)
     return i
 
+
 def llabel(txt):
     """Return a centered, line-wrapped label."""
-    l = gtk.Label(txt)
-    l.set_alignment(0, 0.5)
-    l.set_line_wrap(True)
-    return l
+    label = gtk.Label(txt)
+    label.set_alignment(0, 0.5)
+    label.set_line_wrap(True)
+    return label
+
 
 class KyeHelpDialog(gtk.Dialog):
     """Help dialog box."""
@@ -72,42 +83,42 @@ class KyeHelpDialog(gtk.Dialog):
         self.connect("response", self.response)
         table = gtk.Table(15, 2)
         self.vbox.pack_start(table, True, True, 0)
-        table.attach(pbimage(getimage("kye")),0,1,0,1)
+        table.attach(pbimage(getimage("kye")), 0, 1, 0, 1)
         table.attach(llabel("You are Kye. Move by point-and-click with the mouse, or the arrow keys or numeric keypad on the keyboard (note that you can move diagonally, even using the keyboard)."),1,2,0,1)
-        table.attach(pbimage(getimage("diamond_1")),0,1,1,2)
-        table.attach(llabel("The object of the game is to collect all the diamonds."),1,2,1,2)
-        table.attach(pbimage(getimage("wall5")),0,1,2,3)
-        table.attach(llabel("These are solid walls."),1,2,2,3)
-        table.attach(pbimage(getimage("block")),0,1,3,4)
-        table.attach(llabel("These are blocks, which you can push."),1,2,3,4)
-        table.attach(pbimage(getimage("slider_right")),0,1,4,5)
-        table.attach(llabel("Sliders move in the direction of the arrow until they hit an obstacle."),1,2,4,5)
-        table.attach(pbimage(getimage("rocky_right")),0,1,5,6)
-        table.attach(llabel("Rockies move like sliders, but they roll around round objects, like rounded walls and other rockies."),1,2,5,6)
-        table.attach(pbimage(getimage("blocke")),0,1,6,7)
-        table.attach(llabel("Soft blocks you can destroy by moving into them."),1,2,6,7)
+        table.attach(pbimage(getimage("diamond_1")), 0, 1, 1, 2)
+        table.attach(llabel("The object of the game is to collect all the diamonds."), 1, 2, 1, 2)
+        table.attach(pbimage(getimage("wall5")), 0, 1, 2, 3)
+        table.attach(llabel("These are solid walls."), 1, 2, 2, 3)
+        table.attach(pbimage(getimage("block")), 0, 1, 3, 4)
+        table.attach(llabel("These are blocks, which you can push."), 1, 2, 3, 4)
+        table.attach(pbimage(getimage("slider_right")), 0, 1, 4, 5)
+        table.attach(llabel("Sliders move in the direction of the arrow until they hit an obstacle."), 1, 2, 4, 5)
+        table.attach(pbimage(getimage("rocky_right")), 0, 1, 5, 6)
+        table.attach(llabel("Rockies move like sliders, but they roll around round objects, like rounded walls and other rockies."), 1, 2, 5, 6)
+        table.attach(pbimage(getimage("blocke")), 0, 1, 6, 7)
+        table.attach(llabel("Soft blocks you can destroy by moving into them."), 1, 2, 6, 7)
         mh = gtk.HBox()
-        mh.pack_start(pbimage(getimage("blob_1")),True,True,0)
-        mh.pack_start(pbimage(getimage("gnasher_1")),True,True,0)
-        mh.pack_start(pbimage(getimage("spike_1")),True,True,0)
-        mh.pack_start(pbimage(getimage("twister_1")),True,True,0)
-        mh.pack_start(pbimage(getimage("snake_1")),True,True,0)
-        table.attach(mh,0,1,7,8)
-        table.attach(llabel("Monsters kill you if they touch you. You do have 3 lives, though."),1,2,7,8)
-        table.attach(pbimage(getimage("sentry_right")),0,1,8,9)
-        table.attach(llabel("Sentries pace back and forward, and push other objects."),1,2,8,9)
-        table.attach(pbimage(getimage("black_hole_1")),0,1,9,10)
-        table.attach(llabel("Objects entering a black hole are destroyed."),1,2,9,10)
-        table.attach(pbimage(getimage("slider_shooter_right")),0,1,10,11)
-        table.attach(llabel("Shooters create new sliders or rockies."),1,2,10,11)
-        table.attach(pbimage(getimage("block_timer_5")),0,1,11,12)
-        table.attach(llabel("Timer blocks disappear when their time runs out."),1,2,11,12)
-        table.attach(pbimage(getimage("turner_clockwise")),0,1,12,13)
-        table.attach(llabel("Turning blocks change the direction of sliders and rockies."),1,2,12,13)
-        table.attach(pbimage(getimage("sticky_horizontal")),0,1,13,14)
-        table.attach(llabel("Magnets (also called sticky blocks) allow you to pull objects."),1,2,13,14)
-        table.attach(pbimage(getimage("oneway_right_1")),0,1,14,15)
-        table.attach(llabel("One-way doors only allow Kye though, and only in one direction."),1,2,14,15)
+        mh.pack_start(pbimage(getimage("blob_1")), True, True, 0)
+        mh.pack_start(pbimage(getimage("gnasher_1")), True, True, 0)
+        mh.pack_start(pbimage(getimage("spike_1")), True, True, 0)
+        mh.pack_start(pbimage(getimage("twister_1")), True, True, 0)
+        mh.pack_start(pbimage(getimage("snake_1")), True, True, 0)
+        table.attach(mh, 0, 1, 7, 8)
+        table.attach(llabel("Monsters kill you if they touch you. You do have 3 lives, though."), 1, 2, 7, 8)
+        table.attach(pbimage(getimage("sentry_right")), 0, 1, 8, 9)
+        table.attach(llabel("Sentries pace back and forward, and push other objects."), 1, 2, 8, 9)
+        table.attach(pbimage(getimage("black_hole_1")), 0, 1, 9, 10)
+        table.attach(llabel("Objects entering a black hole are destroyed."), 1, 2, 9, 10)
+        table.attach(pbimage(getimage("slider_shooter_right")), 0, 1, 10, 11)
+        table.attach(llabel("Shooters create new sliders or rockies."), 1, 2, 10, 11)
+        table.attach(pbimage(getimage("block_timer_5")), 0, 1, 11, 12)
+        table.attach(llabel("Timer blocks disappear when their time runs out."), 1, 2, 11, 12)
+        table.attach(pbimage(getimage("turner_clockwise")), 0, 1, 12, 13)
+        table.attach(llabel("Turning blocks change the direction of sliders and rockies."), 1, 2, 12, 13)
+        table.attach(pbimage(getimage("sticky_horizontal")), 0, 1, 13, 14)
+        table.attach(llabel("Magnets (also called sticky blocks) allow you to pull objects."), 1, 2, 13, 14)
+        table.attach(pbimage(getimage("oneway_right_1")), 0, 1, 14, 15)
+        table.attach(llabel("One-way doors only allow Kye though, and only in one direction."), 1, 2, 14, 15)
         foottext = llabel("If you make a mistake, or get stuck in a level, go to the Level menu and select Restart Level. To skip to a particular level (if you've played a set of levels before and already know the level name you want to get to), go to the Level menu and select Goto Level. You can load a new set of levels by specifying the .kye file on the command line, or by opening it via the File menu.")
         foottext.set_justify(gtk.JUSTIFY_LEFT)
         foottext.set_line_wrap(True)
@@ -120,12 +131,14 @@ class KyeHelpDialog(gtk.Dialog):
     def response(self, a, rid):
         self.destroy()
 
+
 def kyeffilter():
     """Constructs a gtk.FileFilter for .kye files"""
     kfilter = gtk.FileFilter()
     kfilter.set_name("Kye Levels")
     kfilter.add_pattern("*.kye")
     return kfilter
+
 
 def kyerfilter():
     """Constructs a gtk.FileFilter for .kyr files"""
@@ -134,15 +147,20 @@ def kyerfilter():
     kfilter.add_pattern("*.kyr")
     return kfilter
 
+
 def getopendialog():
     """Build a gtk.FileChooserDialog suitable for Kye levels"""
     filesel = gtk.FileChooserDialog("Open Kye Levels",
-        buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+                                    buttons=(gtk.STOCK_OK,
+                                             gtk.RESPONSE_OK,
+                                             gtk.STOCK_CANCEL,
+                                             gtk.RESPONSE_REJECT))
     filesel.add_filter(kyeffilter())
     for path in kyepaths:
         if path[0] == "/" and exists(path):
             filesel.add_shortcut_folder(path)
     return filesel
+
 
 def KyeAboutDialog(kimg):
     """Returns a gtk.AboutDialog with all the names/details/versions for Kye entered.
@@ -160,7 +178,10 @@ def KyeAboutDialog(kimg):
         d.set_license("Distributed under the GNU General Public License")
         d.set_logo(kimg)
         return d
-    except AttributeError, e:
+    except AttributeError:
         # Old pygtk versions do not have an AboutDialog, so fall back on a MessageDialog.
-        d = gtk.MessageDialog(type=gtk.MESSAGE_INFO, message_format = "Kye "+version+" - by Colin Phipps <cph@moria.org.uk>", buttons=gtk.BUTTONS_OK)
+        d = gtk.MessageDialog(
+            type=gtk.MESSAGE_INFO,
+            message_format="Kye %s - by Colin Phipps <cph@moria.org.uk>" % version,
+            buttons=gtk.BUTTONS_OK)
         return d

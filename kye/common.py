@@ -32,19 +32,21 @@ version = "1.0"
 
 kyepaths = ("levels", "/usr/local/share/kye", "/usr/share/kye")
 
+
 def tryopen(filename, paths):
     """Returns a reading file handle for filename, searching through directories in the supplied paths."""
     try:
         f = open(filename)
         return f
-    except IOError, e:
+    except IOError:
         for path in paths:
             try:
                 f = open(join(path, filename))
                 return f
-            except IOError, e:
+            except IOError:
                 pass
-    raise IOError, "Unable to find file "+filename
+    raise IOError("Unable to find file %s" % filename)
+
 
 def findfile(filename):
     """Looks for filename, searching a built-in list of directories; returns the path where it finds the file."""
@@ -55,8 +57,10 @@ def findfile(filename):
         if exists(x):
             return x
 
+
 class KyeImageDir:
     """Class for retrieving images from a tileset tar.gz."""
+
     def __init__(self, filename):
         self.tiles = {}
         tar = tarfile.open(filename, 'r|gz')

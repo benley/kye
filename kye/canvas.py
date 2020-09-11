@@ -29,7 +29,7 @@ class KCanvas(gtk.DrawingArea):
     """A gtk DrawingArea which draws the game."""
     tilesize = 16
 
-    def __init__(self, responder, tilesize = 16):
+    def __init__(self, responder, tilesize=16):
         gtk.DrawingArea.__init__(self)
 
         # Remember the tilesize, and set the canvas size appropriately.
@@ -45,8 +45,8 @@ class KCanvas(gtk.DrawingArea):
         self.mouseto = responder.mouse_motion_event
         self.bpress = responder.button_press_event
         self.brelease = responder.button_release_event
-        self.connect("motion_notify_event",  self.mouse_motion_event  )
-        self.connect("button_press_event",   self.button_press_event  )
+        self.connect("motion_notify_event",  self.mouse_motion_event)
+        self.connect("button_press_event",   self.button_press_event)
         self.connect("button_release_event", self.button_release_event)
 
         # Set up keyboard handling.
@@ -57,14 +57,14 @@ class KCanvas(gtk.DrawingArea):
 
         # Get the image directory and create the rendered image cache.
         imgdirname = findfile("images.tar.gz")
-        if imgdirname == None:
+        if imgdirname is None:
             md = gtk.MessageDialog(type=gtk.MESSAGE_ERROR,
-                    message_format="Could not find tileset",
-                    buttons=gtk.BUTTONS_OK)
+                                   message_format="Could not find tileset",
+                                   buttons=gtk.BUTTONS_OK)
             md.format_secondary_markup("You need a set of tile images - images.tar.gz - to run python-kye. There should be such a set included with python-kye, or you can download an alternate set from the website.")
             md.run()
             md.destroy()
-            raise Exception, "aborting, no tileset"
+            raise Exception("aborting, no tileset")
         self.imgdir = KyeImageDir(imgdirname)
         self.images = {}
 
@@ -91,16 +91,16 @@ class KCanvas(gtk.DrawingArea):
                     if tile != self.showboard[xsize*y+x]:
                         self.showboard[xsize*y+x] = tile
                         self.queue_draw_area(self.tilesize*x, self.tilesize*y,
-                                            self.tilesize, self.tilesize)
+                                             self.tilesize, self.tilesize)
 
-    def get_image(self, tilename, tilesize = None):
+    def get_image(self, tilename, tilesize=None):
         """Get a GDK PixBuf containing the rendered image for the named tile.
 
         If specified, tilesize overrides the current tile size of the canvas
         (e.g. to get images for dialogs or the status bar at an invariant size).
         """
         # Use current tilesize by default.
-        if tilesize == None:
+        if tilesize is None:
             tilesize = KCanvas.tilesize
 
         # Use cached image data if available.
@@ -115,8 +115,8 @@ class KCanvas(gtk.DrawingArea):
             pixbuf_loader.write(image_data)
             pixbuf_loader.close()
             i = pixbuf_loader.get_pixbuf()
-            if i == None:
-                raise KeyError, "Incomplete image for "+tilename
+            if i is None:
+                raise KeyError("Incomplete image for %s" % tilename)
 
             # Add in the white background.
             i = i.composite_color_simple(tilesize, tilesize, gtk.gdk.INTERP_BILINEAR, 255, tilesize, 0xffffffL, 0xffffffL)
@@ -155,7 +155,7 @@ class KCanvas(gtk.DrawingArea):
         gc = self.window.new_gc()
         gc.set_fill(gtk.gdk.SOLID)
         gc.set_function(gtk.gdk.COPY)
-        x , y, width, height = event.area
+        x, y, width, height = event.area
 
         tilesize = self.tilesize
         try:
@@ -167,9 +167,10 @@ class KCanvas(gtk.DrawingArea):
                         continue
                     self.drawcell(gc, i, j)
         except KeyError, e:
-            md = gtk.MessageDialog(type=gtk.MESSAGE_ERROR,
-                    message_format="Tileset is missing image for "+str(e),
-                    buttons=gtk.BUTTONS_OK)
+            md = gtk.MessageDialog(
+                type=gtk.MESSAGE_ERROR,
+                message_format="Tileset is missing image for %s" % e,
+                buttons=gtk.BUTTONS_OK)
             md.run()
             md.destroy()
             gtk.main_quit()

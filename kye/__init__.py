@@ -16,4 +16,6 @@
 #    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-__all__ = ["app", "frame", "game", "canvas", "leveledit", "editor", "common", "dialogs", "stbar", "input", "palette", "defaults", "objects" ]
+__all__ = ["app", "frame", "game", "canvas", "leveledit", "editor",
+           "common", "dialogs", "stbar", "input", "palette", "defaults",
+           "objects"]
