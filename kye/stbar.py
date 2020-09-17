@@ -19,33 +19,32 @@
 
 """Classes for the status bar for the Kye game GUI."""
 
-import pygtk
-pygtk.require('2.0')
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gdk
 
 
-class StatusBarKyes(gtk.DrawingArea):
+class StatusBarKyes(Gtk.DrawingArea):
     """Small gtk DrawingArea-derived widget for the bottom-left of the game display, showing lives left."""
 
     def __init__(self, kyeimg):
-        gtk.DrawingArea.__init__(self)
+        Gtk.DrawingArea.__init__(self)
         self.set_size_request(20*3+4, 20)
         self.__kyeimg = kyeimg
-        self.connect("expose-event", self.expose)
+        self.connect("draw", self.draw_event)
         self.__kyes = None
 
-    def expose(self, window, event):
+    def draw_event(self, da, cairo_ctx):
         """Handle redraws."""
-        gc = self.window.new_gc()
-        gc.set_fill(gtk.gdk.SOLID)
-        gc.set_function(gtk.gdk.COPY)
-        self.window.draw_rectangle(self.style.bg_gc[gtk.STATE_NORMAL],
-                                   True, 0, 0, 20*3+4, 20)
+        style_ctx = da.get_style_context()
+        width = da.get_allocated_width()
+        height = da.get_allocated_height()
+        Gtk.render_background(style_ctx, cairo_ctx, 0, 0, width, height)
+
         if self.__kyes is not None:
             for n in range(self.__kyes):
-                self.window.draw_pixbuf(gc, self.__kyeimg, 0, 0, 20*n+2, 2,
-                                        self.__kyeimg.get_width(),
-                                        self.__kyeimg.get_height())
+                Gdk.cairo_set_source_pixbuf(cairo_ctx, self.__kyeimg, n*20, 0)
+                cairo_ctx.paint()
 
     def update(self, num_kyes):
         """Set the number of kye lives to show; schedules a redraw if needed."""
@@ -54,7 +53,7 @@ class StatusBarKyes(gtk.DrawingArea):
             self.queue_draw_area(0, 0, 20*3+4, 20)
 
 
-class StatusBar(gtk.HBox):
+class StatusBar(Gtk.HBox):
     """Gtk widget for the Kye status bar."""
     string_map = {
         "diamonds": "Diamonds left",
@@ -63,7 +62,7 @@ class StatusBar(gtk.HBox):
     }
 
     def __init__(self, kyeimg):
-        gtk.HBox.__init__(self)
+        Gtk.HBox.__init__(self)
         self.hint = None
         self.levelnum = None
         self.diamonds = None
@@ -72,11 +71,12 @@ class StatusBar(gtk.HBox):
         self.pack_start(self.__kyes_widget, False, False, 2)
 
         for k in ("diamonds", "levelnum", "hint"):
-            this_label = self.__dict__[k] = gtk.Label("")
+            this_label = self.__dict__[k] = Gtk.Label("")
             this_label.set_alignment(0.5, 0.5)
             if k == "hint":
-                # Need an eventbox around the hint label, so we can add a tooltip later.
-                add_widget = self.__hint_eventbox = gtk.EventBox()
+                # Need an eventbox around the hint label, so we can add a
+                # tooltip later.
+                add_widget = self.__hint_eventbox = Gtk.EventBox()
                 add_widget.add(this_label)
             else:
                 add_widget = this_label
@@ -85,7 +85,7 @@ class StatusBar(gtk.HBox):
 
     def update(self, **keywords):
         """Update data displayed in the status bar."""
-        for k, value in keywords.iteritems():
+        for k, value in keywords.items():
             # hint text should also be added to the tooltip.
             if k == "hint":
                 self.__hint_eventbox.set_tooltip_text(value)

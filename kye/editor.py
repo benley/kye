@@ -18,9 +18,9 @@
 #
 """kye.editor - classes and data for the level editor."""
 
-import pygtk
-pygtk.require('2.0')
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 
 from tempfile import mkstemp
 from os import unlink, fdopen
@@ -71,7 +71,7 @@ ui_string = """<ui>
 </ui>"""
 
 
-class KEditor(gtk.Window):
+class KEditor(Gtk.Window):
     """Class implementing the level editor GUI."""
 
     def delete_event(self, widget, event, data=None):
@@ -82,13 +82,13 @@ class KEditor(gtk.Window):
         # This is useful for popping up 'are you sure you want to quit?'
         # type dialogs.
         if self.g.is_modified():
-            md = gtk.MessageDialog(self,
-                                   type=gtk.MESSAGE_QUESTION,
-                                   buttons=gtk.BUTTONS_YES_NO,
+            md = Gtk.MessageDialog(self,
+                                   type=Gtk.MessageType.QUESTION,
+                                   buttons=Gtk.ButtonsType.YES_NO,
                                    message_format="Quit without saving?")
             r = md.run()
             md.destroy()
-            if r == gtk.RESPONSE_NO:
+            if r == Gtk.ResponseType.NO:
                 return True
         self.__lose_ok = True
         return False
@@ -97,29 +97,30 @@ class KEditor(gtk.Window):
     def destroy(self, widget, data=None):
         """Handle a sudden exit."""
         if not self.__lose_ok and self.g.is_modified():
+            # TODO: this location isn't ideal or portable
             self.dosave("/var/tmp/abort.kye")
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def build_ui(self):
         """Construct UIManager and ActionGroup with bindings to functions here to handle menu actions"""
-        action_group = gtk.ActionGroup('WindowActions')
+        action_group = Gtk.ActionGroup('WindowActions')
 
         actions = [
             ("FileMenu", None, "_File"),
-            ("Open", gtk.STOCK_OPEN, "_Open…", "<control>O", "Open a set of levels", self.opendialog),
-            ("Save", gtk.STOCK_SAVE, "_Save", "<control>S", "Save these levels", self.menusave),
-            ("SaveAs", gtk.STOCK_SAVE_AS, "Save _As…", "<control>A", "Save these levels to a new filename", self.menusaveas),
-            ("Quit", gtk.STOCK_QUIT, "_Quit", "<control>Q", "Quit the game", self.quit),
+            ("Open", Gtk.STOCK_OPEN, "_Open…", "<control>O", "Open a set of levels", self.opendialog),
+            ("Save", Gtk.STOCK_SAVE, "_Save", "<control>S", "Save these levels", self.menusave),
+            ("SaveAs", Gtk.STOCK_SAVE_AS, "Save _As…", "<control>A", "Save these levels to a new filename", self.menusaveas),
+            ("Quit", Gtk.STOCK_QUIT, "_Quit", "<control>Q", "Quit the game", self.quit),
             ("EditMenu", None, "_Edit"),
-            ("Undo", gtk.STOCK_UNDO, "_Undo", "<control>Z", "Undo last edit", self.undo),
+            ("Undo", Gtk.STOCK_UNDO, "_Undo", "<control>Z", "Undo last edit", self.undo),
             ("LevelMenu", None, "_Level"),
             ("New Level", None, "_New Level", "<control>N", "Add a new level to this set of levels", self.newlevel),
             ("Edit Level Text", None, "_Edit Level Text…", "<control>E", "Edit the level name, hint and exit message for this level", self.textdialog),
             ("Delete Level", None, "_Delete Level", "<control>D", "Delete this level from this level set", self.delete_level),
             ("ViewMenu", None, "_View"),
             ("HelpMenu", None, "_Help"),
-            ("The Game", gtk.STOCK_HELP, "_The Game", "<control>T", "Help for playing the game", self.helpdialog),
-            ("About Kye", gtk.STOCK_ABOUT, "About _Kye", "<control>K", "About Python Kye", self.aboutdialog),
+            ("The Game", Gtk.STOCK_HELP, "_The Game", "<control>T", "Help for playing the game", self.helpdialog),
+            ("About Kye", Gtk.STOCK_ABOUT, "About _Kye", "<control>K", "About Python Kye", self.aboutdialog),
         ]
         action_group.add_actions(actions)
 
@@ -138,16 +139,14 @@ class KEditor(gtk.Window):
         action_group.add_radio_actions(radio_actions, 16, self.settilesize)
 
         # And now create the UI object and add accel group to the window
-        self.ui = gtk.UIManager()
+        self.ui = Gtk.UIManager()
         self.ui.insert_action_group(action_group, 0)
         self.ui.add_ui_from_string(ui_string)
         self.add_accel_group(self.ui.get_accel_group())
 
     def __init__(self):
-        if gtk.pygtk_version[0] < 2 or gtk.pygtk_version[1] < 2:
-            raise EnvironmentError("Needs at least pygtk-2.2.0")
         # create a new window
-        gtk.Window.__init__(self, gtk.WINDOW_TOPLEVEL)
+        Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
 
         # When the window is given the "delete_event" signal (this is given
         # by the window manager, usually by the "close" option, or on the
@@ -180,22 +179,25 @@ class KEditor(gtk.Window):
         self.palette.setup(self.canvas.get_image)
 
         # Main vbox
-        self.main_vbox = gtk.VBox(False)
+        self.main_vbox = Gtk.VBox(False)
         self.main_vbox.set_border_width(1)
 
         # Build menu
         self.levels_ui_mid = self.levels_ag = None
         self.build_ui()
         self.menubar = self.ui.get_widget('/KyeEditMenuBar')
-        self.main_vbox.pack_start(self.menubar, False, True, 0)
+        self.main_vbox.pack_start(self.menubar, expand=False, fill=True,
+                                  padding=0)
         self.menubar.show()
 
         # This packs the button into the window (a GTK container).
-        self.main_vbox.pack_start(self.canvas, padding=0)
+        self.main_vbox.pack_start(self.canvas, expand=True, fill=True,
+                                  padding=0)
         self.canvas.show()
 
         # And the palette
-        self.main_vbox.pack_start(self.palette, padding=0)
+        self.main_vbox.pack_start(self.palette, expand=True, fill=True,
+                                  padding=0)
         self.palette.show()
 
         # Add and display the vbox
@@ -249,7 +251,7 @@ class KEditor(gtk.Window):
         self.levels_ui_mid = self.levels_ag = None
 
         # Build extra menu items, and their actions, for level selection
-        action_group = gtk.ActionGroup("LevelActions")
+        action_group = Gtk.ActionGroup("LevelActions")
         radio_actions = []
         uistring = "<ui><menubar name='KyeEditMenuBar'><menu action='LevelMenu'>"
         for n, name in enumerate(levels):
@@ -296,7 +298,7 @@ class KEditor(gtk.Window):
         """Handler for Quit menu item."""
         if self.delete_event(None, a):
             return
-        gtk.main_quit()
+        Gtk.main_quit()
 
     # Now file actions
 
@@ -306,21 +308,21 @@ class KEditor(gtk.Window):
         if len(errs) == 0:
             return True
         errmsg = 'Errors were found in some of your levels:'
-        for level, level_errors in errs.iteritems():
+        for level, level_errors in errs.items():
             errmsg = errmsg + '\n' + level + ':' + '\n'.join(level_errors)
-        md = gtk.MessageDialog(parent=self,
-                               type=gtk.MESSAGE_WARNING,
-                               buttons=gtk.BUTTONS_OK_CANCEL,
+        md = Gtk.MessageDialog(parent=self,
+                               type=Gtk.MessageType.WARNING,
+                               buttons=Gtk.ButtonsType.OK_CANCEL,
                                message_format=errmsg)
         response = md.run()
         md.destroy()
-        return response == gtk.RESPONSE_OK
+        return response == Gtk.ResponseType.OK
 
     def opendialog(self, a):
         """Prompt for a .kye file to open, and then pass to opencall"""
         filesel = getopendialog()
         response = filesel.run()
-        if response == gtk.RESPONSE_OK:
+        if response == Gtk.ResponseType.OK:
             filename = filesel.get_filename()
             filesel.destroy()
             self.do_open(filename)
@@ -340,7 +342,7 @@ class KEditor(gtk.Window):
             if template == 0:
                 self.setfname(fname)
         except IOError:
-            self.error_message(message="Failed to read "+fname)
+            self.error_message(message="Failed to read %s" % fname)
             return False
         try:
             self.__tf.seek(0)
@@ -354,19 +356,19 @@ class KEditor(gtk.Window):
         """Ask where to save and then save the levels there"""
         if not self.dochecks():
             return
-        filesel = gtk.FileChooserDialog("Save Kye Levels",
-                                        action=gtk.FILE_CHOOSER_ACTION_SAVE,
-                                        buttons=(gtk.STOCK_OK,
-                                                 gtk.RESPONSE_OK,
-                                                 gtk.STOCK_CANCEL,
-                                                 gtk.RESPONSE_REJECT))
+        filesel = Gtk.FileChooserDialog("Save Kye Levels",
+                                        action=Gtk.FileChooserAction.SAVE,
+                                        buttons=(Gtk.STOCK_OK,
+                                                 Gtk.ResponseType.OK,
+                                                 Gtk.STOCK_CANCEL,
+                                                 Gtk.ResponseType.REJECT))
         filesel.add_filter(kyeffilter())
         try:
             filesel.set_do_overwrite_confirmation(True)
         except AttributeError:
             pass
         response = filesel.run()
-        if response == gtk.RESPONSE_OK:
+        if response == Gtk.ResponseType.OK:
             filename = filesel.get_filename()
             filesel.destroy()
             if self.dosave(filename):
@@ -405,15 +407,15 @@ class KEditor(gtk.Window):
     def textdialog(self, a):
         """Edit Level Text handler."""
         # Create dialog.
-        lt_dialog = gtk.Dialog(title='Set level text',
+        lt_dialog = Gtk.Dialog(title='Set level text',
                                parent=self,
-                               flags=gtk.DIALOG_MODAL,
-                               buttons=(gtk.STOCK_OK,
-                                        gtk.RESPONSE_ACCEPT,
-                                        gtk.STOCK_CANCEL,
-                                        gtk.RESPONSE_REJECT))
-        lt_dialog.set_default_response(gtk.RESPONSE_ACCEPT)
-        table = gtk.Table(3, 2)
+                               flags=Gtk.DialogFlags.MODAL,
+                               buttons=(Gtk.STOCK_OK,
+                                        Gtk.ResponseType.ACCEPT,
+                                        Gtk.STOCK_CANCEL,
+                                        Gtk.ResponseType.REJECT))
+        lt_dialog.set_default_response(Gtk.ResponseType.ACCEPT)
+        table = Gtk.Table(3, 2)
         table.attach(llabel("Level name"), 0, 1, 0, 1)
         table.attach(llabel("Hint text"), 0, 1, 1, 2)
         table.attach(llabel("End of level text"), 0, 1, 2, 3)
@@ -422,8 +424,8 @@ class KEditor(gtk.Window):
         h = self.g.get_messages()
         e = {}
         f = {'name': 20, 'hint': 35, 'exitmsg': 50}
-        for field, width in f.iteritems():
-            e[field] = gtk.Entry(max=width)
+        for field, width in f.items():
+            e[field] = Gtk.Entry(max=width)
             e[field].set_width_chars(width)
             e[field].set_text(h[field])
             e[field].set_activates_default(True)
@@ -433,12 +435,12 @@ class KEditor(gtk.Window):
 
         # Add and show the table
         table.show_all()
-        lt_dialog.vbox.pack_start(table, True, True, 0)
+        lt_dialog.vbox.pack_start(table, expand=True, fill=True, padding=0)
 
         # If accepted, read data out of the dialog and save it.
         result = lt_dialog.run()
-        if result == gtk.RESPONSE_ACCEPT:
-            for field, control in e.iteritems():
+        if result == Gtk.ResponseType.ACCEPT:
+            for field, control in e.items():
                 h[field] = control.get_text()
             self.g.set_messages(**h)
         lt_dialog.destroy()
@@ -451,10 +453,10 @@ class KEditor(gtk.Window):
 
     def error_message(self, message):
         """Print error message dialog."""
-        md = gtk.MessageDialog(parent=self,
-                               type=gtk.MESSAGE_ERROR,
+        md = Gtk.MessageDialog(parent=self,
+                               type=Gtk.MessageType.ERROR,
                                message_format=message,
-                               buttons=gtk.BUTTONS_OK)
+                               buttons=Gtk.ButtonsType.OK)
         md.run()
         md.destroy()
 
@@ -475,7 +477,7 @@ class KEditor(gtk.Window):
 
         # Create temp file; we save every level here immediately after loading it.
         (tf, tfname) = mkstemp(suffix='.kye')
-        self.__tf = fdopen(tf, 'w')
+        self.__tf = fdopen(tf, 'wb')
 
         # Load specified level, or the template
         if len(argv) > 1:
@@ -487,9 +489,9 @@ class KEditor(gtk.Window):
 
         self.do_open(playfile, template=template)
 
-        # All PyGTK applications must have a gtk.main(). Control ends here
+        # All PyGTK applications must have a Gtk.main(). Control ends here
         # and waits for an event to occur (like a key press or mouse event).
-        gtk.main()
+        Gtk.main()
 
         # If out without errors, remove the backup copy
         self.__tf.close()

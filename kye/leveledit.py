@@ -379,13 +379,15 @@ class KLevelEdit:
 
     def saveto(self, f):
         """Save the whole level set to a given file stream"""
-        f.write("%d\r\n" % len(self.levels))
+        f.write(bytes("%d\r\n" % len(self.levels), "utf-8"))
         for l in self.levels:
-            f.write("%s\r\n%s\r\n%s\r\n" % (l['name'], l['hint'], l['exitmsg']))
+            f.write(bytes("%s\r\n%s\r\n%s\r\n" %
+                          (l['name'], l['hint'], l['exitmsg']),
+                          "utf-8"))
             i = 0
             for y in range(ysize):
                 for x in range(xsize):
-                    f.write(l['board'][i])
+                    f.write(bytes(l['board'][i], "utf-8"))
                     i = i + 1
-                f.write("\r\n")
+                f.write(b"\r\n")
                 f.flush()

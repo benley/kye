@@ -24,7 +24,7 @@ dirmap = ("up", "left", "right", "down")
 
 
 def direction(dx, dy):
-    return dirmap[dy+1+(dx+dy+1)/2]
+    return dirmap[dy + 1 + (dx + dy + 1) // 2]
 
 
 class Base:
@@ -81,7 +81,7 @@ class Wall(Base):
         return self.t
 
     def image(self, af):
-        return "wall"+str(self.t)
+        return "wall%s" % self.t
 
 
 class Edible(Base):
@@ -99,9 +99,11 @@ class Diamond(Edible):
         Edible.__init__(self)
         self.state = Diamond.r.randint(1, 2)
 
-    def image(self, af): return "diamond_"+str(self.state)
+    def image(self, af):
+        return "diamond_%s" % self.state
 
-    def freq(self): return 20
+    def freq(self):
+        return 20
 
     def think(self, game, x, y):
         if Diamond.r.randint(1, 10) == 1:
@@ -205,7 +207,7 @@ class Block(Thinker):
 
     def image(self, af):
         if self.timer > 0:
-            return "block_timer_%s" % (self.timer//30)
+            return "block_timer_%s" % (self.timer // 30)
         if self.round:
             return "blockr"
         if self.__turn == -1:
@@ -236,9 +238,10 @@ class Sentry(Thinker):
         self.dy = idy
 
     def image(self, af):
-        return "sentry_"+direction(self.dx, self.dy)
+        return "sentry_%s" % direction(self.dx, self.dy)
 
-    def freq(self): return 5
+    def freq(self):
+        return 5
 
     def act(self, game, x, y):
         # Look at what we are walking into
@@ -278,8 +281,9 @@ class Monster(Thinker):
         self.frame = Monster.r.randint(1, self.frames)
         self.autoanim = True
 
-    def image(self, af):
-        return Monster.names[self.type]+"_"+str(1 + ((self.frame + af) % self.frames))
+    def image(self, af: int) -> str:
+        return "%s_%s" % (Monster.names[self.type],
+                          1 + ((self.frame + af) % self.frames))
 
     def freq(self):
         return 3
@@ -340,7 +344,7 @@ class Monster(Thinker):
                     else:
                         tx, ty = x, y-1
 
-        # Now try to move to (tx,ty). We only fall into black holes if moving randomely.
+        # Now try to move to (tx,ty). We only fall into black holes if moving randomly.
         t = game.get_at(tx, ty)
         if t is None:
             game.move_object(x, y, tx, ty)
@@ -422,11 +426,11 @@ class Slider(Thinker):
         return 0
 
     def image(self, af):
-        i = "slider_"
+        i = "slider_%s"
         if self.round:
-            i = "rocky_"
-        i = i + direction(self.dx, self.dy)
-        return i
+            i = "rocky_%s"
+        return i % direction(self.dx, self.dy)
+
 
     def act(self, game, x, y):
         dx, dy = self.dx, self.dy
@@ -600,8 +604,8 @@ class BlackHole(Thinker):
             df = BlackHole.delayframes + 1 - self.delay
             if df <= 0:
                 df = 1
-            return "black_hole_swallow_"+str(df)
-        return "black_hole_"+str(self.frame+1)
+            return "black_hole_swallow_%s" % df
+        return "black_hole_%s" % (self.frame+1)
 
 
 class OneWay(Base):

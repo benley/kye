@@ -7,13 +7,14 @@ with rec {
     ps.python-language-server
     ps.pyls-mypy
     ps.flake8
-    # (ps.callPackage ./kye.nix {})
-    ps.pygtk
   ]);
 };
 
 pkgs.mkShell {
   buildInputs = [
     pythonEnv
+  ];
+  inputsFrom = [
+    (import ./default.nix { inherit nixpkgs; })
   ];
 }

@@ -17,7 +17,7 @@
 #
 """kye.defaults - contains the KyeDefaults class."""
 
-from os.path import join, basename, expanduser
+import os.path
 
 
 class KyeDefaults:
@@ -27,7 +27,7 @@ class KyeDefaults:
 
     def __init__(self):
         # Path to the config file.
-        self.__cf = join(expanduser("~"), ".kye.config")
+        self.__cf = os.path.join(os.path.expanduser("~"), ".kye.config")
 
         # Initialise.
         self.__count = 0
@@ -54,7 +54,7 @@ class KyeDefaults:
                         # Format here is filename<TAB>known_level<TAB>known_level<TAB>...
                         fields = line.split("\t")
                         path = fields.pop(0)
-                        filename = basename(path)
+                        filename = os.path.basename(path)
                         self.__known[filename] = fields
                         self.__path[filename] = path
 
@@ -77,7 +77,7 @@ class KyeDefaults:
 
     def get_known_levels(self, path):
         """Get all known level names for the given filename."""
-        fname = basename(path)
+        fname = os.path.basename(path)
         if fname in self.__known:
             return self.__known[fname]
         return []
@@ -85,7 +85,7 @@ class KyeDefaults:
     def add_known(self, path, level_name):
         """For this kye file, we now know this level name."""
         # Index by just the filename
-        fname = basename(path)
+        fname = os.path.basename(path)
         self.__path[fname] = path
 
         # Remember that this is the most recently loaded level

@@ -18,12 +18,16 @@
 
 """kye.common - Common utility functions and classes.
 Exposed constants:
+
 xsize, ysize - size of the game playing area.
+
 version - version number of this release of the game.
-kyepaths - the list of paths that we will try for opening levels given on the command line, and for searching for tilesets."""
+
+kyepaths - the list of paths that we will try for opening levels given on the
+           command line, and for searching for tilesets."""
 
 import tarfile
-from os.path import exists, join
+import os.path
 
 xsize = 30
 ysize = 20
@@ -41,7 +45,7 @@ def tryopen(filename, paths):
     except IOError:
         for path in paths:
             try:
-                f = open(join(path, filename))
+                f = open(os.path.join(path, filename))
                 return f
             except IOError:
                 pass
@@ -50,11 +54,11 @@ def tryopen(filename, paths):
 
 def findfile(filename):
     """Looks for filename, searching a built-in list of directories; returns the path where it finds the file."""
-    if exists(filename):
+    if os.path.exists(filename):
         return filename
     for path in kyepaths:
-        x = join(path, filename)
-        if exists(x):
+        x = os.path.join(path, filename)
+        if os.path.exists(x):
             return x
 
 

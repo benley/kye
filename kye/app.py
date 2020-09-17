@@ -21,7 +21,8 @@
 
 from os.path import basename
 from random import Random
-import gobject
+
+from gi.repository import GObject
 
 from kye.common import tryopen, kyepaths
 from kye.game import KGame, KGameFormatError
@@ -29,7 +30,10 @@ from kye.input import KyeRecordedInput, KDemoFormatError, KDemoFileMismatch
 
 
 class KyeApp:
-    """This class is a wrapper around the game class, which handles various extra-game actions, such as selecting whether the game is taking input from the user or a recording, loading new levels and changeover between levels."""
+    """This class is a wrapper around the game class, which handles various
+    extra-game actions, such as selecting whether the game is taking input from
+    the user or a recording, loading new levels and changeover between levels.
+    """
 
     def __init__(self, defaults, playfile="intro.kye", playlevel=""):
         self.__playfile = playfile
@@ -48,7 +52,7 @@ class KyeApp:
 
         # Run first tick - loads the level - immediately
         self.do_tick()
-        gobject.timeout_add(100, self.do_tick)
+        GObject.timeout_add(100, self.do_tick)
 
         self.__frame.main()
 
@@ -79,7 +83,8 @@ class KyeApp:
             # If we are still playing, run a gametick and update the screen.
             if self.__gamestate == "playing level":
                 self.__game.dotick()
-                self.__frame.canvas.game_redraw(self.__game, self.__game.invalidate)
+                self.__frame.canvas.game_redraw(self.__game,
+                                                self.__game.invalidate)
                 self.__frame.stbar.update(diamonds=self.__game.diamonds)
                 if self.__game.thekye is not None:
                     self.__frame.stbar.update(kyes=self.__game.thekye.lives)
@@ -124,7 +129,7 @@ class KyeApp:
             except KDemoFormatError:
                 self.__frame.error_message(message="This file is not a Kye recording")
             except IOError:
-                self.__frame.error_message(message="Failed to read %s " % self.__playback)
+                self.__frame.error_message(message="Failed to read %s" % self.__playback)
             self.__playback = None
 
         # Now try loading the actual level

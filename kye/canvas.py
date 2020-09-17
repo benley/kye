@@ -19,27 +19,34 @@
 
 """kye.canvas - module containing the KCanvas class, which implements the display of the game itself."""
 
-import pygtk
-pygtk.require('2.0')
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, GdkPixbuf, Gdk
+import cairo
+
 from kye.common import xsize, ysize, findfile, KyeImageDir
 
 
-class KCanvas(gtk.DrawingArea):
+class KCanvas(Gtk.DrawingArea):
     """A gtk DrawingArea which draws the game."""
     tilesize = 16
 
     def __init__(self, responder, tilesize=16):
-        gtk.DrawingArea.__init__(self)
+        Gtk.DrawingArea.__init__(self)
 
         # Remember the tilesize, and set the canvas size appropriately.
         KCanvas.tilesize = tilesize
         self.set_size_request(KCanvas.tilesize*xsize, KCanvas.tilesize*ysize)
 
         # Set GTK window flags & expose handler.
-        self.set_events(gtk.gdk.EXPOSURE_MASK | gtk.gdk.KEY_PRESS_MASK | gtk.gdk.KEY_RELEASE_MASK | gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_RELEASE_MASK | gtk.gdk.POINTER_MOTION_MASK)
-        self.set_flags(gtk.CAN_FOCUS)
-        self.connect("expose-event", self.expose)
+        self.set_events(Gdk.EventMask.EXPOSURE_MASK
+                        | Gdk.EventMask.KEY_PRESS_MASK
+                        | Gdk.EventMask.KEY_RELEASE_MASK
+                        | Gdk.EventMask.BUTTON_PRESS_MASK
+                        | Gdk.EventMask.BUTTON_RELEASE_MASK
+                        | Gdk.EventMask.POINTER_MOTION_MASK)
+        self.set_can_focus(True)
+        self.connect("draw", self.draw_event)
 
         # Set up mouse event handling.
         self.mouseto = responder.mouse_motion_event
@@ -58,9 +65,9 @@ class KCanvas(gtk.DrawingArea):
         # Get the image directory and create the rendered image cache.
         imgdirname = findfile("images.tar.gz")
         if imgdirname is None:
-            md = gtk.MessageDialog(type=gtk.MESSAGE_ERROR,
+            md = Gtk.MessageDialog(type=Gtk.MESSAGE_ERROR,
                                    message_format="Could not find tileset",
-                                   buttons=gtk.BUTTONS_OK)
+                                   buttons=Gtk.BUTTONS_OK)
             md.format_secondary_markup("You need a set of tile images - images.tar.gz - to run python-kye. There should be such a set included with python-kye, or you can download an alternate set from the website.")
             md.run()
             md.destroy()
@@ -70,7 +77,7 @@ class KCanvas(gtk.DrawingArea):
 
         # Set up array holding the on-screen state.
         self.showboard = []
-        for i in range(xsize*ysize):
+        for i in range(xsize * ysize):
             self.showboard.append("blank")
 
     def game_redraw(self, game, changed_squares):
@@ -93,7 +100,7 @@ class KCanvas(gtk.DrawingArea):
                         self.queue_draw_area(self.tilesize*x, self.tilesize*y,
                                              self.tilesize, self.tilesize)
 
-    def get_image(self, tilename, tilesize=None):
+    def get_image(self, tilename, tilesize=None) -> GdkPixbuf.Pixbuf:
         """Get a GDK PixBuf containing the rendered image for the named tile.
 
         If specified, tilesize overrides the current tile size of the canvas
@@ -110,27 +117,27 @@ class KCanvas(gtk.DrawingArea):
             image_data = self.imgdir.get_tile(tilename)
 
             # Make gdk PixbufLoader, feed it the data, get the resulting pixbuf
-            pixbuf_loader = gtk.gdk.PixbufLoader()
+            pixbuf_loader = GdkPixbuf.PixbufLoader()
             pixbuf_loader.set_size(tilesize, tilesize)
             pixbuf_loader.write(image_data)
             pixbuf_loader.close()
-            i = pixbuf_loader.get_pixbuf()
-            if i is None:
+            pb = pixbuf_loader.get_pixbuf()
+            if pb is None:
                 raise KeyError("Incomplete image for %s" % tilename)
 
             # Add in the white background.
-            i = i.composite_color_simple(
-                tilesize, tilesize, gtk.gdk.INTERP_BILINEAR, 255, tilesize,
-                0xffffff, 0xffffff)
+            pb = pb.composite_color_simple(
+                tilesize, tilesize, GdkPixbuf.InterpType.BILINEAR, 255,
+                tilesize, 0xffffff, 0xffffff)
 
             # Adding an alpha channel seems to help it work with some image
             # formats/colour depths.
-            i = i.add_alpha(False, '\x00', '\x00', '\x00')
+            pb = pb.add_alpha(False, 0, 0, 0)
 
             # Cache if this is the useful size for us.
             if tilesize == KCanvas.tilesize:
-                self.images[tilename] = i
-            return i
+                self.images[tilename] = pb
+            return pb
 
     def settilesize(self, size):
         """Sets the size for tiles; causes the canvas to resize and be redrawn."""
@@ -138,27 +145,31 @@ class KCanvas(gtk.DrawingArea):
         self.set_size_request(self.tilesize*xsize, self.tilesize*ysize)
         self.queue_draw_area(0, 0, self.tilesize*xsize, self.tilesize*ysize)
 
-        # And must flush the tile cache; need to redraw from the image data at the new tile size.
+        # And must flush the tile cache; need to redraw from the image data at
+        # the new tile size.
         self.images = {}
 
-    def drawcell(self, gc, i, j):
+    def drawcell(self, cairo_ctx: cairo.Context, i, j):
         """Draw the cell at i, j, using the supplied graphics context."""
-        tile = self.showboard[i+j*xsize]
+        tile = self.showboard[i + j * xsize]
 
-        i = i*self.tilesize
-        j = j*self.tilesize
+        i = i * self.tilesize
+        j = j * self.tilesize
 
         if (tile == "blank"):
-            self.window.draw_rectangle(self.style.white_gc, True, i, j, self.tilesize, self.tilesize)
+            cairo_ctx.set_source_rgb(1, 1, 1)
+            cairo_ctx.rectangle(i, j, self.tilesize, self.tilesize)
+            cairo_ctx.fill()
         else:
-            self.window.draw_pixbuf(gc, self.get_image(tile), 0, 0, i, j, self.tilesize, self.tilesize, gtk.gdk.RGB_DITHER_NORMAL, 0, 0)
+            Gdk.cairo_set_source_pixbuf(cairo_ctx,
+                                        self.get_image(tile), i, j)
+            cairo_ctx.paint()
 
-    def expose(self, widget, event):
-        """expose handler; redraws the invalidated part of the display."""
-        gc = self.window.new_gc()
-        gc.set_fill(gtk.gdk.SOLID)
-        gc.set_function(gtk.gdk.COPY)
-        x, y, width, height = event.area
+    def draw_event(self, widget, cairo_ctx) -> None:
+        """draw handler; redraws the invalidated part of the display."""
+        x, y = 0, 0
+        width = widget.get_allocated_width()
+        height = widget.get_allocated_height()
 
         tilesize = self.tilesize
         try:
@@ -168,33 +179,33 @@ class KCanvas(gtk.DrawingArea):
                 for j in range(ysize):
                     if (j+1)*tilesize <= y or j*tilesize > y+height:
                         continue
-                    self.drawcell(gc, i, j)
+                    self.drawcell(cairo_ctx, i, j)
         except KeyError as e:
-            md = gtk.MessageDialog(
-                type=gtk.MESSAGE_ERROR,
+            md = Gtk.MessageDialog(
+                type=Gtk.MessageType.ERROR,
                 message_format="Tileset is missing image for %s" % e,
-                buttons=gtk.BUTTONS_OK)
+                buttons=Gtk.ButtonsType.OK)
             md.run()
             md.destroy()
-            gtk.main_quit()
+            Gtk.main_quit()
 
     def button_press_event(self, widget, event):
         """Handler for mouse button presses; just translates to game coords and passes on."""
-        x, y, mods = event.window.get_pointer()
-        x = x / KCanvas.tilesize
-        y = y / KCanvas.tilesize
+        window, x, y, mods = event.window.get_pointer()
+        x = x // KCanvas.tilesize
+        y = y // KCanvas.tilesize
         self.bpress(event.button, x, y)
 
     def button_release_event(self, widget, event):
         """Handler for mouse button release; just translates to game coords and passes on."""
-        x, y, mods = event.window.get_pointer()
-        x = x / KCanvas.tilesize
-        y = y / KCanvas.tilesize
+        window, x, y, mods = event.window.get_pointer()
+        x = x // KCanvas.tilesize
+        y = y // KCanvas.tilesize
         self.brelease(event.button, x, y)
 
     def mouse_motion_event(self, widget, event):
         """Handler for mouse movement; just translates to game coords and passes on."""
-        x, y, mods = event.window.get_pointer()
-        x = x / KCanvas.tilesize
-        y = y / KCanvas.tilesize
+        window, x, y, mods = event.window.get_pointer()
+        x = x // KCanvas.tilesize
+        y = y // KCanvas.tilesize
         self.mouseto(x, y)

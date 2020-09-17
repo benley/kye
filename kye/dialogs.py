@@ -19,25 +19,27 @@
 
 """kye.dialogs - classes for dialog boxes used by the interface."""
 
-import pygtk
-pygtk.require('2.0')
-import gtk
-from os.path import exists
+import os.path
+
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+
 from kye.common import kyepaths, version
 
 
-class GotoDialog(gtk.Dialog):
+class GotoDialog(Gtk.Dialog):
     """A dialog box for the player to select or type a level name to go to."""
 
     def __init__(self, parent=None, knownlevs=()):
-        gtk.Dialog.__init__(self, title="Go to level",
+        Gtk.Dialog.__init__(self, title="Go to level",
                             parent=parent,
-                            flags=gtk.DIALOG_MODAL,
-                            buttons=(gtk.STOCK_OK,
-                                     gtk.RESPONSE_ACCEPT,
-                                     gtk.STOCK_CANCEL,
-                                     gtk.RESPONSE_REJECT))
-        self.set_default_response(gtk.RESPONSE_ACCEPT)
+                            flags=Gtk.DialogFlags.MODAL,
+                            buttons=(Gtk.STOCK_OK,
+                                     Gtk.ResponseType.ACCEPT,
+                                     Gtk.STOCK_CANCEL,
+                                     Gtk.ResponseType.REJECT))
+        self.set_default_response(Gtk.ResponseType.ACCEPT)
 
         # Add prompt.
         self.label = llabel("Select, or type, the name of the level to go to.")
@@ -45,43 +47,44 @@ class GotoDialog(gtk.Dialog):
         self.vbox.pack_start(self.label, True, True, 0)
 
         # Add combobox to select known level or enter level name.
-        self.cb = gtk.combo_box_entry_new_text()
+        self.cb = Gtk.ComboBoxText()
         for level in knownlevs:
             self.cb.append_text(level)
-        self.cb.child.set_activates_default(True)
+        # TODO: what's this supposed to do?
+        # self.cb.child.set_activates_default(True)
         self.vbox.pack_start(self.cb, True, True, 0)
 
         self.cb.show()
 
     def get_level(self):
         """Returns the selected level name."""
-        return self.cb.child.get_text()
+        return self.cb.get_active_text()
 
 
 def pbimage(img):
-    """Make a gtk.Image from a pixbuf."""
-    i = gtk.Image()
+    """Make a Gtk.Image from a pixbuf."""
+    i = Gtk.Image()
     i.set_from_pixbuf(img)
     return i
 
 
 def llabel(txt):
     """Return a centered, line-wrapped label."""
-    label = gtk.Label(txt)
+    label = Gtk.Label(txt)
     label.set_alignment(0, 0.5)
     label.set_line_wrap(True)
     return label
 
 
-class KyeHelpDialog(gtk.Dialog):
+class KyeHelpDialog(Gtk.Dialog):
     """Help dialog box."""
 
     def __init__(self, parent=None, after=None, message=None, getimage=None):
-        gtk.Dialog.__init__(self, title="Help", parent=parent,
-                            flags=gtk.DIALOG_DESTROY_WITH_PARENT)
-        self.add_button(gtk.STOCK_OK, 0)
+        Gtk.Dialog.__init__(self, title="Help", parent=parent,
+                            flags=Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        self.add_button(Gtk.STOCK_OK, 0)
         self.connect("response", self.response)
-        table = gtk.Table(15, 2)
+        table = Gtk.Table(15, 2)
         self.vbox.pack_start(table, True, True, 0)
         table.attach(pbimage(getimage("kye")), 0, 1, 0, 1)
         table.attach(llabel("You are Kye. Move by point-and-click with the mouse, or the arrow keys or numeric keypad on the keyboard (note that you can move diagonally, even using the keyboard)."), 1, 2, 0, 1)
@@ -97,7 +100,7 @@ class KyeHelpDialog(gtk.Dialog):
         table.attach(llabel("Rockies move like sliders, but they roll around round objects, like rounded walls and other rockies."), 1, 2, 5, 6)
         table.attach(pbimage(getimage("blocke")), 0, 1, 6, 7)
         table.attach(llabel("Soft blocks you can destroy by moving into them."), 1, 2, 6, 7)
-        mh = gtk.HBox()
+        mh = Gtk.HBox()
         mh.pack_start(pbimage(getimage("blob_1")), True, True, 0)
         mh.pack_start(pbimage(getimage("gnasher_1")), True, True, 0)
         mh.pack_start(pbimage(getimage("spike_1")), True, True, 0)
@@ -120,7 +123,7 @@ class KyeHelpDialog(gtk.Dialog):
         table.attach(pbimage(getimage("oneway_right_1")), 0, 1, 14, 15)
         table.attach(llabel("One-way doors only allow Kye though, and only in one direction."), 1, 2, 14, 15)
         foottext = llabel("If you make a mistake, or get stuck in a level, go to the Level menu and select Restart Level. To skip to a particular level (if you've played a set of levels before and already know the level name you want to get to), go to the Level menu and select Goto Level. You can load a new set of levels by specifying the .kye file on the command line, or by opening it via the File menu.")
-        foottext.set_justify(gtk.JUSTIFY_LEFT)
+        foottext.set_justify(Gtk.Justification.LEFT)
         foottext.set_line_wrap(True)
         self.vbox.pack_start(foottext, True, True, 0)
         foottext.show()
@@ -133,42 +136,42 @@ class KyeHelpDialog(gtk.Dialog):
 
 
 def kyeffilter():
-    """Constructs a gtk.FileFilter for .kye files"""
-    kfilter = gtk.FileFilter()
+    """Constructs a Gtk.FileFilter for .kye files"""
+    kfilter = Gtk.FileFilter()
     kfilter.set_name("Kye Levels")
     kfilter.add_pattern("*.kye")
     return kfilter
 
 
 def kyerfilter():
-    """Constructs a gtk.FileFilter for .kyr files"""
-    kfilter = gtk.FileFilter()
+    """Constructs a Gtk.FileFilter for .kyr files"""
+    kfilter = Gtk.FileFilter()
     kfilter.set_name("Kye Recordings")
     kfilter.add_pattern("*.kyr")
     return kfilter
 
 
 def getopendialog():
-    """Build a gtk.FileChooserDialog suitable for Kye levels"""
-    filesel = gtk.FileChooserDialog("Open Kye Levels",
-                                    buttons=(gtk.STOCK_OK,
-                                             gtk.RESPONSE_OK,
-                                             gtk.STOCK_CANCEL,
-                                             gtk.RESPONSE_REJECT))
+    """Build a Gtk.FileChooserDialog suitable for Kye levels"""
+    filesel = Gtk.FileChooserDialog("Open Kye Levels",
+                                    buttons=(Gtk.STOCK_OK,
+                                             Gtk.ResponseType.OK,
+                                             Gtk.STOCK_CANCEL,
+                                             Gtk.ResponseType.REJECT))
     filesel.add_filter(kyeffilter())
     for path in kyepaths:
-        if path[0] == "/" and exists(path):
+        if path[0] == "/" and os.path.exists(path):
             filesel.add_shortcut_folder(path)
     return filesel
 
 
 def KyeAboutDialog(kimg):
-    """Returns a gtk.AboutDialog with all the names/details/versions for Kye entered.
+    """Returns a Gtk.AboutDialog with all the names/details/versions for Kye entered.
 
     Used to be a subclass of AboutDialog, hence the name.
     """
     try:
-        d = gtk.AboutDialog()
+        d = Gtk.AboutDialog()
         d.set_name("Kye")
         d.set_version(version)
         d.set_website("http://games.moria.org.uk/kye/pygtk")
@@ -180,8 +183,8 @@ def KyeAboutDialog(kimg):
         return d
     except AttributeError:
         # Old pygtk versions do not have an AboutDialog, so fall back on a MessageDialog.
-        d = gtk.MessageDialog(
-            type=gtk.MESSAGE_INFO,
+        d = Gtk.MessageDialog(
+            type=Gtk.MESSAGE_INFO,
             message_format="Kye %s - by Colin Phipps <cph@moria.org.uk>" % version,
-            buttons=gtk.BUTTONS_OK)
+            buttons=Gtk.BUTTONS_OK)
         return d

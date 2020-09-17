@@ -18,12 +18,14 @@
 
 """Input handling code - mouse input and recorded input."""
 
-import pygtk
-pygtk.require('2.0')
-from gtk.gdk import keyval_from_name, SHIFT_MASK
+import gi
+gi.require_version("Gdk", "3.0")
+from gi.repository import Gdk
+from gi.repository.Gdk import keyval_from_name
+
 import pickle
 from gzip import GzipFile
-from os.path import basename
+import os.path
 
 from kye.common import version
 
@@ -80,7 +82,7 @@ class KMoveInput:
                 # wait a few ticks before considering the key held and reacting
                 # to it again.  But have SHIFT as a way for the user to tell us
                 # that it's a hold.
-                if event.state & SHIFT_MASK == 0:
+                if event.state & Gdk.ModifierType.SHIFT_MASK == 0:
                     self.__delay = 1  # wait 1 tic
                 self.heldkeys.append(pressedkey)
         except KeyError:
@@ -147,9 +149,9 @@ class KMoveInput:
         self.__recordto = stream
 
         # Write header
-        stream.write("Kye %s recording:\n" % version)
-        stream.write(basename(playfile) + "\n")
-        stream.write(playlevel + "\n")
+        stream.write(bytes("Kye %s recording:\n" % version, "UTF-8"))
+        stream.write(bytes(os.path.basename(playfile) + "\n", "UTF-8"))
+        stream.write(bytes(playlevel + "\n", "UTF-8"))
         pickle.dump(rng.getstate(), stream)
 
     def is_recording(self):
@@ -161,8 +163,8 @@ class KMoveInput:
         m = self.__get_move()
         if self.__recordto is not None:
             if m is not None:
-                self.__recordto.write("\t".join([str(i) for i in m]))
-            self.__recordto.write("\n")
+                self.__recordto.write(bytes("\t".join(map(str, m)), "UTF-8"))
+            self.__recordto.write(b"\n")
         return m
 
 
@@ -176,7 +178,7 @@ class KDemoFormatError(KDemoError):
 
 class KDemoFileMismatch(KDemoError):
     def __init__(self, filename):
-        KDemoError.__init__()
+        KDemoError.__init__(self)
         self.filename = filename
 
 
@@ -185,19 +187,19 @@ class KyeRecordedInput:
 
     def __init__(self, playfile, playback):
         instream = GzipFile(playback)
-        header = instream.readline().rstrip()
-        if header[0:4] != "Kye " or header[-12:-1] == " recording:":
+        header = instream.readline().rstrip().decode()
+        if not (header.startswith("Kye ") and header.endswith(" recording:")):
             raise KDemoFormatError()
 
         # Check filename in the demo is what we have loaded.
-        fn = instream.readline().rstrip()
-        if fn != basename(playfile):
+        fn = instream.readline().rstrip().decode()
+        if fn != os.path.basename(playfile):
             raise KDemoFileMismatch(fn)
 
         # Okay
-        self.__level = instream.readline().rstrip()
+        self.__level = instream.readline().rstrip().decode()
         self.__rng = pickle.load(instream)
-        self.__s = instream
+        self.__s: GzipFile = instream
 
     def get_level(self):
         """Return the level name for this recording."""
@@ -209,9 +211,8 @@ class KyeRecordedInput:
 
     def get_move(self):
         """Get a move from the recording."""
-        l = self.__s.readline()
-        l = l.rstrip()
-        if len(l) == 0:
+        line = self.__s.readline().rstrip().decode()
+        if len(line) == 0:
             return None
-        s = l.split("\t")
+        s = line.split("\t")
         return [s[0], int(s[1]), int(s[2])]
