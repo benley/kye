@@ -11,6 +11,8 @@ Gtk 3. So it will run on modern Linux systems easily enough, and indeed should
 work on any system with working Python and pygobject. It works on Windows as
 well, for instance.
 
+![screenshot](screenshot.png)
+
 Linux/Unix Installation
 -----------------------
 
