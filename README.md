@@ -1,28 +1,33 @@
 Kye 1.0
 =========
 
-This is a clone of the game Kye for Windows, originally by Colin Garbutt. It
-is a puzzle game, which is a little like the old falling-rocks puzzle games,
-and perhaps also inspired a little by Sokoban. But Kye has more variety of
-objects, and so is capable of posing quite complex puzzles.
+This is a clone of the game Kye for Windows, originally by Colin Garbutt. It is
+a puzzle game, which is a little like the old falling-rocks puzzle games, and
+perhaps also inspired a little by Sokoban. But Kye has more variety of objects,
+and so is capable of posing quite complex puzzles.
 
-This clone is written by Colin Phipps <cph@moria.org.uk> in Python and uses
-gtk. So it will run on modern Linux systems easily enough, and indeed should
-work on any system with working Python and pygtk. It works on Windows as well,
-for instance.
+This clone is written by [Colin Phipps](cph@moria.org.uk) in Python and uses
+Gtk 3. So it will run on modern Linux systems easily enough, and indeed should
+work on any system with working Python and pygobject. It works on Windows as
+well, for instance.
 
 Linux/Unix Installation
 -----------------------
 
-for Debian or Ubuntu: apt-get install python-gtk2 librsvg2-common
-for FreeBSD: portinstall py24-gtk librsvg2
+- For Debian or Ubuntu:
+  `apt-get install python-gtk2 librsvg2-common`
+- For FreeBSD:
+  `portinstall py24-gtk librsvg2`
 
-To install Kye, run ./setup.py install ; Kye should then be in your path (on
+To install Kye, run `./setup.py install`; Kye should then be in your path (on
 Debian-like system, you may have to install python2.4-dev for this to work).
-Or you can just run it from the extracted tarball, with ./Kye.
+Or you can just run it from the extracted tarball, with `./Kye`.
 
 Windows Installation
 --------------------
+
+This section is untested and likely to be incomplete; please send updates if
+you figure out how to make it work.
 
 See http://games.moria.org.uk/kye/download-install#install-win for the latest
 Windows install instructions - these are fairly new so the online instructions
@@ -30,17 +35,15 @@ may be newer and better. There are quite a few things to install I'm afraid, as
 there doesn't seem to be a single installer available that includes the bits
 that you need.
 
-- Install [Python 2.6](http://www.python.org/ftp/python/2.6.6/python-2.6.6.msi) to `C:\Program Files\Python26`.
-- Download [GTK 2.16](http://ftp.gnome.org/pub/gnome/binaries/win32/gtk+/2.16/gtk+-bundle_2.16.6-20100912_win32.zip) and extract it to `C:\Program Files\gtk+_win32`.
-- Install [pygtk 2.16 for python 2.6](http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.16/pygtk-2.16.0.win32-py2.6.exe).
-- Install [pygobject for python 2.6](http://ftp.gnome.org/pub/GNOME/binaries/win32/pygobject/2.20/pygobject-2.20.0.win32-py2.6.exe).
-- Install [pycairo for python 2.6](http://ftp.gnome.org/pub/GNOME/binaries/win32/pycairo/1.8/pycairo-1.8.6.win32-py2.6.exe).
-- Having run the installers for all of those (except gtk+ which as noted have to extract yourself), you can then download and extract Python Kye for Windows (that's what you've done already to be reading this file). Extract it to your "My Documents" is fine if you like.
-- Run a command prompt, and go to the `kye-1.0` directory that you just extracted.
+- Install Python 3.8, GTK 3, pygobject, and pycairo
+- Having run the installers for all of those, you can then download and extract
+  Python Kye for Windows (that's what you've done already to be reading this
+  file). Extract it to your "My Documents" is fine if you like.
+- Run a command prompt, and go to the `kye-1.0` directory that you just
+  extracted.
 - In the command prompt run
 
 ```bat
-PATH=%PATH%;C:\Program Files\Python26;C:\Program Files\gtk+_win32
 python Kye.py
 ```
 
@@ -99,8 +102,8 @@ images by default.)
 Copyright & Charityware
 -----------------------
 
-This version of Kye is Copyright (C) 2004-2010 Colin Phipps <cph@moria.org.uk>.
-It is made available under the GNU General Public License (see the file COPYING
+This version of Kye is Copyright (C) 2004-2010 [Colin Phipps](cph@moria.org.uk).
+It is made available under the GNU General Public License (see the file [COPYING](./COPYING)
 for details). Furthermore, as the game idea comes from the original Kye game,
 to maintain the spirit of the original distribution rules, Kye is charityware -
 if you enjoy playing Kye, you are encouraged to donate to a children's charity
@@ -111,10 +114,9 @@ as well).
 Authors & Acknowlegements
 -------------------------
 
-Python Kye and the supplied levels & graphics are written by Colin Phipps
-<cph@moria.org.uk>. Python Kye is Copyright (c) 2004, 2005, 2006, 2007, 2010 by
-Colin Phipps <cph@moria.org.uk>; it is distributed under the GNU General Public
-License v2, see COPYING for details.
+Python Kye and the supplied levels & graphics are written by [Colin Phipps](cph@moria.org.uk).
+Python Kye is Copyright (c) 2004, 2005, 2006, 2007, 2010 by [Colin Phipps](cph@moria.org.uk);
+it is distributed under the GNU General Public License v2, see COPYING for details.
 
 It is modelled on the original Kye for Windows by Colin Garbutt.
 
@@ -123,5 +125,5 @@ Thanks also to:
 <vexorian@gmail.com>
   for useful feedback, and information about the original Kye
 
-Viktor Kerkez <alef@atomixlinux.org>
+[Viktor Kerkez](alef@atomixlinux.org)
   for the basis of the RPM spec file, & I have incorporated some of his patches.
