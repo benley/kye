@@ -18,6 +18,8 @@
 """kye.defaults - contains the KyeDefaults class."""
 
 import os.path
+from pathlib import Path
+from typing import Dict, List
 
 from xdg import BaseDirectory
 
@@ -29,16 +31,16 @@ class KyeDefaults:
     known_header = "[Known Levels]"
     settings_header = "[Settings]"
 
-    def __init__(self):
-        # Path to the config file.
-        cf = BaseDirectory.load_first_config("kye/kye.config")
-
+    def __init__(self) -> None:
         # Initialise.
         self.__count = 0
-        self.__known = {}
-        self.__orderfiles = {}
-        self.__path = {}
-        self.settings = {}
+        self.__known: Dict[str, List[str]] = {}
+        self.__orderfiles: Dict[str, int] = {}
+        self.__path: Dict[str, Path] = {}
+        self.settings: Dict[str, str] = {}
+
+        # Path to the config file.
+        cf = BaseDirectory.load_first_config("kye/kye.config")
 
         if cf is None:
             return
@@ -63,7 +65,7 @@ class KyeDefaults:
                         path = fields.pop(0)
                         filename = os.path.basename(path)
                         self.__known[filename] = fields
-                        self.__path[filename] = path
+                        self.__path[filename] = Path(path)
 
                         # Order in the config file is the recently-used order.
                         self.__orderfiles[filename] = self.__count
@@ -82,14 +84,14 @@ class KyeDefaults:
         except IOError:
             pass
 
-    def get_known_levels(self, path):
+    def get_known_levels(self, path: Path) -> List[str]:
         """Get all known level names for the given filename."""
         fname = os.path.basename(path)
         if fname in self.__known:
             return self.__known[fname]
         return []
 
-    def add_known(self, path, level_name):
+    def add_known(self, path: Path, level_name: str) -> None:
         """For this kye file, we now know this level name."""
         # Index by just the filename
         fname = os.path.basename(path)
@@ -106,13 +108,13 @@ class KyeDefaults:
         if level_name not in self.__known[fname]:
             self.__known[fname].append(level_name)
 
-    def get_recent(self):
+    def get_recent(self) -> List[Path]:
         """Returns paths to the five most recently loaded .kye files."""
         known_names = sorted(self.__known.keys(),
                              key=lambda x: self.__orderfiles[x])
         return [self.__path[name] for name in known_names[-5:]]
 
-    def save(self):
+    def save(self) -> None:
         """Try to save the configuration back to the config file."""
         try:
             path = os.path.join(BaseDirectory.save_config_path("kye"),
@@ -123,8 +125,8 @@ class KyeDefaults:
                 known_names = sorted(self.__known.keys(),
                                      key=lambda x: self.__orderfiles[x])
                 for name in known_names:
-                    s.write(self.__path[name] + "\t"
-                            + "\t".join(self.__known[name]) + "\n")
+                    s.write("%s\t%s\n" % (self.__path[name],
+                                          "\t".join(self.__known[name])))
                 s.write("\n")
 
                 # other settings

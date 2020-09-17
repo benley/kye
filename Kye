@@ -25,7 +25,7 @@ from kye.app import KyeApp
 from sys import argv
 
 
-def main():
+def main() -> None:
     # Load settings file.
     defaults = KyeDefaults()
 
