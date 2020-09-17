@@ -18,14 +18,16 @@
 
 """kye.palette - the object selection palette for the editor."""
 
-import pygtk
-pygtk.require('2.0')
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk, Gdk
+
 from kye.common import xsize, ysize
 
 
-class KPalette(gtk.DrawingArea):
+class KPalette(Gtk.DrawingArea):
     """Provides  object selection palette widget for the editor."""
+
     def __init__(self, palsource):
         # Misc initial state
         self.mousedown = None
@@ -33,10 +35,10 @@ class KPalette(gtk.DrawingArea):
         self.game = None
 
         # Set up the drawing area
-        gtk.DrawingArea.__init__(self)
-        self.set_events(gtk.gdk.EXPOSURE_MASK | gtk.gdk.BUTTON_PRESS_MASK)
+        Gtk.DrawingArea.__init__(self)
+        self.set_events(Gdk.EventMask.EXPOSURE_MASK | Gdk.EventMask.BUTTON_PRESS_MASK)
         self.connect("button_press_event", self.palette_click_event)
-        self.connect("expose-event", self.expose)
+        self.connect("draw", self.draw_event)
 
         # Build up the palette. The list of tools contains a number of circularly linked lists
         # of similar tools; we want just one tool from each list in our palette, and the user will
@@ -45,7 +47,7 @@ class KPalette(gtk.DrawingArea):
         self.__palsource = palsource
         palitems = {}
         already = {}
-        for f, tool_data in palsource.iteritems():
+        for f, tool_data in palsource.items():
             x = tool_data[1]
             if f not in already and x != '':
                 palitems[f] = 1
@@ -55,7 +57,7 @@ class KPalette(gtk.DrawingArea):
                     x = palsource[x][1]
 
         # So make the initial palette from palitems.
-        self.palitems = palitems.keys()
+        self.palitems = list(palitems.keys())
 
         # Start with the wall tool.
         self.selected = '5'
@@ -94,34 +96,55 @@ class KPalette(gtk.DrawingArea):
 
     # Events in the palette
 
-    def palette_click_event(self, window, event):
+    def palette_click_event(self, widget, event):
         """Acts on a click on the palette."""
-        if event.type != gtk.gdk.BUTTON_PRESS: return
-        x, y, mods = event.window.get_pointer()
+        if event.type != Gdk.EventType.BUTTON_PRESS:
+            return
+        _, x, y, unused_mask = event.window.get_pointer()
         y = y - 4
-        if y < 0: return
-        x = x / (self.__tilesize+4)
+        if y < 0:
+            return
+        x = x // (self.__tilesize+4)
         if x < len(self.palitems):
             self.click_item(x)
 
-    def expose(self,window,event):
+    def draw_event(self, widget, cairo_ctx):
         """Handle redraws."""
-        gc = self.window.new_gc()
-        gc.set_fill(gtk.gdk.SOLID)
-        gc.set_function(gtk.gdk.COPY)
-        self.window.draw_rectangle(self.style.black_gc, True, 0, 0, self.__tilesize*xsize, 4)
-        self.window.draw_rectangle(self.style.white_gc, True, 0, 4, self.__tilesize*xsize, self.__tilesize+4)
+        # White line just below the game area
+        cairo_ctx.set_source_rgb(1, 1, 1)
+        cairo_ctx.rectangle(0, 0, self.__tilesize*xsize, 4)
+        cairo_ctx.fill()
+
+        # Fill black below that, where the tool palette goes
+        cairo_ctx.set_source_rgb(0, 0, 0)
+        cairo_ctx.rectangle(0, 4, self.__tilesize*xsize, self.__tilesize+4)
+        cairo_ctx.fill()
+
         x = 0
         for i in self.palitems:
             if i == self.selected:
-                self.window.draw_rectangle(self.style.bg_gc[gtk.STATE_SELECTED],True, x, 4,self.__tilesize+4,self.__tilesize+4)
-            self.window.draw_pixbuf(gc, self.__getimage(self.__palsource[i][0]), 0, 0, 2+x, 6, self.__tilesize, self.__tilesize, gtk.gdk.RGB_DITHER_NORMAL, 0, 0)
+                # TODO: get this color from the gtk theme/style somehow? But
+                #       this seems to result in just black:
+                # style_ctx = widget.get_style_context()
+                # color = style_ctx.get_background_color(Gtk.StateFlags.SELECTED)
+                # cairo_ctx.set_source_rgba(*color)
+
+                # Red border around the selected item
+                cairo_ctx.set_source_rgb(1, 0, 0)
+                cairo_ctx.rectangle(x, 4, self.__tilesize+4, self.__tilesize+4)
+                cairo_ctx.fill()
+            # The actual item image
+            Gdk.cairo_set_source_pixbuf(
+                cairo_ctx,
+                self.__getimage(self.__palsource[i][0]),
+                2+x, 6)
+            cairo_ctx.paint()
             x = x + 4 + self.__tilesize
 
     # These are events passed from the canvas
     def button_press_event(self, button, x, y):
         """Handle mouse press event."""
-        if self.mousedown == None:
+        if self.mousedown is None:
             self.mousebuttondown = button
             self.mousedown = (x, y)
             self.set_at(x, y, self.mousebuttondown)
@@ -133,8 +156,9 @@ class KPalette(gtk.DrawingArea):
 
     def mouse_motion_event(self, x, y):
         """Handle mouse motion event."""
-        if x > xsize or y > ysize or x < 0 or y < 0: return
-        if self.mousedown != None:
+        if x > xsize or y > ysize or x < 0 or y < 0:
+            return
+        if self.mousedown is not None:
             if x != self.mousedown[0] or y != self.mousedown[1]:
                 self.set_at(x, y, self.mousebuttondown)
                 self.mousedown = (x, y)

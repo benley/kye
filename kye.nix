@@ -1,4 +1,6 @@
-{ lib, buildPythonApplication, pygtk }:
+{ lib, buildPythonApplication, pygobject3, gtk3
+, wrapGAppsHook, gobject-introspection
+, pango, pycairo }:
 
 buildPythonApplication rec {
   pname = "kye";
@@ -6,7 +8,18 @@ buildPythonApplication rec {
 
   src = lib.cleanSource ./.;
 
+  # https://github.com/NixOS/nixpkgs/issues/56943
+  strictDeps = false;
+
+  nativeBuildInputs = [
+    wrapGAppsHook
+    gobject-introspection
+  ];
+
   propagatedBuildInputs = [
-    pygtk
+    pango
+    pygobject3
+    gtk3
+    pycairo
   ];
 }

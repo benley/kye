@@ -24,21 +24,28 @@ from kye.app import KyeApp
 
 from sys import argv
 
-# Load settings file.
-defaults = KyeDefaults()
 
-# Load file & level if specified on the command line.
-if len(argv) > 1:
-    if len(argv) > 2:
-        k = KyeApp(defaults=defaults, playfile=argv[1], playlevel=argv[2])
+def main():
+    # Load settings file.
+    defaults = KyeDefaults()
+
+    # Load file & level if specified on the command line.
+    if len(argv) > 1:
+        if len(argv) > 2:
+            k = KyeApp(defaults=defaults, playfile=argv[1], playlevel=argv[2])
+        else:
+            k = KyeApp(defaults=defaults, playfile=argv[1])
     else:
-        k = KyeApp(defaults=defaults, playfile=argv[1])
-else:
-    k = KyeApp(defaults=defaults)
+        k = KyeApp(defaults=defaults)
 
-# Create GUI and run the app. This doesn't return until the user exits.
-f = KFrame(k, recentlevels=defaults.get_recent(), settings=defaults.settings)
-k.run(frame=f)
+    # Create GUI and run the app. This doesn't return until the user exits.
+    f = KFrame(k, recentlevels=defaults.get_recent(),
+               settings=defaults.settings)
+    k.run(frame=f)
 
-# Save settings before exit
-defaults.save()
+    # Save settings before exit
+    defaults.save()
+
+
+if __name__ == '__main__':
+    main()

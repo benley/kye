@@ -18,18 +18,21 @@
 
 """Input handling code - mouse input and recorded input."""
 
-import pygtk
-pygtk.require('2.0')
-from gtk.gdk import keyval_from_name, SHIFT_MASK
+import gi
+gi.require_version("Gdk", "3.0")
+from gi.repository import Gdk
+from gi.repository.Gdk import keyval_from_name
+
 import pickle
 from gzip import GzipFile
-from os.path import basename
+import os.path
 
 from kye.common import version
 
 
 class KMoveInput:
     """Gets movement input, and converts it into game actions."""
+
     def __init__(self):
         self.__recordto = None
         self.clear()
@@ -42,52 +45,56 @@ class KMoveInput:
         self.currentmouse = None
 
     keymap = {
-        keyval_from_name('Left')        : ("rel",-1, 0),
-        keyval_from_name('Right')        : ("rel", 1, 0),
-        keyval_from_name('Up')        : ("rel", 0,-1),
-        keyval_from_name('Down')        : ("rel", 0, 1),
-        keyval_from_name('KP_4') : ("rel",-1, 0),
-        keyval_from_name('KP_6') : ("rel", 1, 0),
-        keyval_from_name('KP_2') : ("rel", 0, 1),
-        keyval_from_name('KP_8') : ("rel", 0,-1),
-        keyval_from_name('KP_1') : ("rel",-1, 1),
-        keyval_from_name('KP_3') : ("rel", 1, 1),
-        keyval_from_name('KP_7') : ("rel",-1,-1),
-        keyval_from_name('KP_9') : ("rel", 1,-1),
-        keyval_from_name('KP_Left')        : ("rel",-1, 0),
-        keyval_from_name('KP_Right')        : ("rel", 1, 0),
-        keyval_from_name('KP_Down')        : ("rel", 0, 1),
-        keyval_from_name('KP_Up')        : ("rel", 0,-1),
-        keyval_from_name('KP_End')        : ("rel",-1, 1),
-        keyval_from_name('KP_Page_Down') : ("rel", 1, 1),
-        keyval_from_name('KP_Home')        : ("rel",-1,-1),
-        keyval_from_name('KP_Page_Up')        : ("rel", 1,-1),
+        keyval_from_name('Left'): ("rel", -1, 0),
+        keyval_from_name('Right'): ("rel", 1, 0),
+        keyval_from_name('Up'): ("rel", 0, -1),
+        keyval_from_name('Down'): ("rel", 0, 1),
+        keyval_from_name('KP_4'): ("rel", -1, 0),
+        keyval_from_name('KP_6'): ("rel", 1, 0),
+        keyval_from_name('KP_2'): ("rel", 0, 1),
+        keyval_from_name('KP_8'): ("rel", 0, -1),
+        keyval_from_name('KP_1'): ("rel", -1, 1),
+        keyval_from_name('KP_3'): ("rel", 1, 1),
+        keyval_from_name('KP_7'): ("rel", -1, -1),
+        keyval_from_name('KP_9'): ("rel", 1, -1),
+        keyval_from_name('KP_Left'): ("rel", -1, 0),
+        keyval_from_name('KP_Right'): ("rel", 1, 0),
+        keyval_from_name('KP_Down'): ("rel", 0, 1),
+        keyval_from_name('KP_Up'): ("rel", 0, -1),
+        keyval_from_name('KP_End'): ("rel", -1, 1),
+        keyval_from_name('KP_Page_Down'): ("rel", 1, 1),
+        keyval_from_name('KP_Home'): ("rel", -1, -1),
+        keyval_from_name('KP_Page_Up'): ("rel", 1, -1),
     }
 
     def key_press_event(self, widget, event):
         """Handle a keypress event."""
         try:
-            pressedkey =  KMoveInput.keymap[event.keyval]
-            # If this key is not already pressed, then it's a new press and so we want to move at least one square
-            #  and remember that it is held down.
+            pressedkey = KMoveInput.keymap[event.keyval]
+            # If this key is not already pressed, then it's a new press and so
+            # we want to move at least one square and remember that it is held
+            # down.
             if pressedkey not in self.heldkeys:
                 self.keyqueue.append(pressedkey)
 
-                # There is no way at this point to know if this is a key press or a key hold. So we'll have a 'delay' which causes us to wait a few ticks before considering the key held and reacting to it again.
-                # But have SHIFT as a way for the user to tell us that it's a hold.
-                if event.state & SHIFT_MASK == 0:
-                    self.__delay = 1 # wait 1 tic
+                # There is no way at this point to know if this is a key press
+                # or a key hold. So we'll have a 'delay' which causes us to
+                # wait a few ticks before considering the key held and reacting
+                # to it again.  But have SHIFT as a way for the user to tell us
+                # that it's a hold.
+                if event.state & Gdk.ModifierType.SHIFT_MASK == 0:
+                    self.__delay = 1  # wait 1 tic
                 self.heldkeys.append(pressedkey)
-        except KeyError, e:
+        except KeyError:
             return
 
     def key_release_event(self, widget, event):
         """Handle a key release event."""
         try:
             self.heldkeys.remove(KMoveInput.keymap[event.keyval])
-        except KeyError, e:
+        except KeyError:
             return
-        except ValueError, e:
+        except ValueError:
             return
 
     def mouse_motion_event(self, x, y):
@@ -127,11 +134,11 @@ class KMoveInput:
 
     def end_record(self):
         """End any previous recording."""
-        if self.__recordto != None:
+        if self.__recordto is not None:
             try:
                 self.__recordto.close()
-            except IOError, e:
-                print "error closing recording"
+            except IOError:
+                print("error closing recording")
 
         self.__recordto = None
 
@@ -142,22 +149,22 @@ class KMoveInput:
         self.__recordto = stream
 
         # Write header
-        stream.write("Kye %s recording:\n" % version)
-        stream.write(basename(playfile) + "\n")
-        stream.write(playlevel + "\n")
+        stream.write(bytes("Kye %s recording:\n" % version, "UTF-8"))
+        stream.write(bytes(os.path.basename(playfile) + "\n", "UTF-8"))
+        stream.write(bytes(playlevel + "\n", "UTF-8"))
         pickle.dump(rng.getstate(), stream)
 
     def is_recording(self):
         """Return true iff we are recording at the moment."""
-        return self.__recordto != None
+        return self.__recordto is not None
 
     def get_move(self):
         """Gets the move from the current keys/mouse state (and records the move if required)."""
         m = self.__get_move()
-        if self.__recordto != None:
-            if m != None:
-                self.__recordto.write("\t".join([str(i) for i in m]))
-            self.__recordto.write("\n")
+        if self.__recordto is not None:
+            if m is not None:
+                self.__recordto.write(bytes("\t".join(map(str, m)), "UTF-8"))
+            self.__recordto.write(b"\n")
         return m
 
 
@@ -171,27 +178,28 @@ class KDemoFormatError(KDemoError):
 
 class KDemoFileMismatch(KDemoError):
     def __init__(self, filename):
-        KDemoError.__init__()
+        KDemoError.__init__(self)
         self.filename = filename
 
 
 class KyeRecordedInput:
     """An input source which is a recording in a file of a previous game."""
+
     def __init__(self, playfile, playback):
         instream = GzipFile(playback)
-        header = instream.readline().rstrip()
-        if header[0:4] != "Kye " or header[-12:-1] == " recording:":
+        header = instream.readline().rstrip().decode()
+        if not (header.startswith("Kye ") and header.endswith(" recording:")):
             raise KDemoFormatError()
 
         # Check filename in the demo is what we have loaded.
-        fn = instream.readline().rstrip()
-        if fn != basename(playfile):
+        fn = instream.readline().rstrip().decode()
+        if fn != os.path.basename(playfile):
             raise KDemoFileMismatch(fn)
 
         # Okay
-        self.__level = instream.readline().rstrip()
+        self.__level = instream.readline().rstrip().decode()
         self.__rng = pickle.load(instream)
-        self.__s = instream
+        self.__s: GzipFile = instream
 
     def get_level(self):
         """Return the level name for this recording."""
@@ -203,9 +211,8 @@ class KyeRecordedInput:
 
     def get_move(self):
         """Get a move from the recording."""
-        l = self.__s.readline()
-        l = l.rstrip()
-        if len(l) == 0:
+        line = self.__s.readline().rstrip().decode()
+        if len(line) == 0:
             return None
-        s = l.split("\t")
+        s = line.split("\t")
         return [s[0], int(s[1]), int(s[2])]

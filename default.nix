@@ -4,4 +4,4 @@ with rec {
   pkgs = nixpkgs.pkgs;
 };
 
-pkgs.python27Packages.callPackage ./kye.nix {}
+pkgs.python38Packages.callPackage ./kye.nix {}

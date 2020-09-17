@@ -35,70 +35,72 @@ def freq(s):
 class KLevelEdit:
     """Class to store levels being edited, handle reading from and writing to file etc."""
     cell_lookup = {
-        'K' : ("kye",'K'),
-        '1' : ("wall1", ''),
-        '2' : ("wall2", ''),
-        '3' : ("wall3", ''),
-        '4' : ("wall4", ''),
-        '5' : ("wall5", '5'),
-        '6' : ("wall6", ''),
-        '7' : ("wall7", ''),
-        '8' : ("wall8", ''),
-        '9' : ("wall9", ''),
-        'b' : ("block", 'B'),
-        'B' : ("blockr", 'b'),
-        'e' : ("blocke", 'e'),
-        '*' : ("diamond_1",'*'),
-        'a' : ("turner_clockwise", 'c'),
-        'c' : ("turner_anticlockwise", 'a'),
-        'D' : ("sentry_down", 'L'),
-        'U' : ("sentry_up", 'R'),
-        'L' : ("sentry_left", 'U'),
-        'R' : ("sentry_right", 'D'),
-        '[' : ("spike_1", 'E'),
-        'E' : ("gnasher_1", 'T'),
-        'T' : ("twister_1", '~'),
-        '~' : ("snake_1", 'C'),
-        'C' : ("blob_1", '['),
-        's' : ("sticky_vertical", 'S'),
-        'S' : ("sticky_horizontal", 's'),
-        'u' : ("slider_up", 'r'),
-        'd' : ("slider_down", 'l'),
-        'l' : ("slider_left", 'u'),
-        'r' : ("slider_right", 'd'),
-        '^' : ("rocky_up", '>'),
-        'v' : ("rocky_down", '<'),
-        '<' : ("rocky_left", '^'),
-        '>' : ("rocky_right", 'v'),
-        'H' : ("black_hole_1", 'H'),
-        '}' : ("block_timer_3", '|'),
-        '|' : ("block_timer_4", '{'),
-        '{' : ("block_timer_5", 'z'),
-        'z' : ("block_timer_6", 'y'),
-        'y' : ("block_timer_7", 'x'),
-        'x' : ("block_timer_8", 'w'),
-        'w' : ("block_timer_9", '}'),
-        'h' : ("oneway_down_1", 'g'),
-        'i' : ("oneway_up_1", 'f'),
-        'f' : ("oneway_right_1", 'h'),
-        'g' : ("oneway_left_1", 'i'),
-        'A' : ("slider_shooter_up", 'F'),
-        'F' : ("rocky_shooter_up", 'A'),
-        ' ' : ("blank", '')
+        'K': ("kye", 'K'),
+        '1': ("wall1", ''),
+        '2': ("wall2", ''),
+        '3': ("wall3", ''),
+        '4': ("wall4", ''),
+        '5': ("wall5", '5'),
+        '6': ("wall6", ''),
+        '7': ("wall7", ''),
+        '8': ("wall8", ''),
+        '9': ("wall9", ''),
+        'b': ("block", 'B'),
+        'B': ("blockr", 'b'),
+        'e': ("blocke", 'e'),
+        '*': ("diamond_1", '*'),
+        'a': ("turner_clockwise", 'c'),
+        'c': ("turner_anticlockwise", 'a'),
+        'D': ("sentry_down", 'L'),
+        'U': ("sentry_up", 'R'),
+        'L': ("sentry_left", 'U'),
+        'R': ("sentry_right", 'D'),
+        '[': ("spike_1", 'E'),
+        'E': ("gnasher_1", 'T'),
+        'T': ("twister_1", '~'),
+        '~': ("snake_1", 'C'),
+        'C': ("blob_1", '['),
+        's': ("sticky_vertical", 'S'),
+        'S': ("sticky_horizontal", 's'),
+        'u': ("slider_up", 'r'),
+        'd': ("slider_down", 'l'),
+        'l': ("slider_left", 'u'),
+        'r': ("slider_right", 'd'),
+        '^': ("rocky_up", '>'),
+        'v': ("rocky_down", '<'),
+        '<': ("rocky_left", '^'),
+        '>': ("rocky_right", 'v'),
+        'H': ("black_hole_1", 'H'),
+        '}': ("block_timer_3", '|'),
+        '|': ("block_timer_4", '{'),
+        '{': ("block_timer_5", 'z'),
+        'z': ("block_timer_6", 'y'),
+        'y': ("block_timer_7", 'x'),
+        'x': ("block_timer_8", 'w'),
+        'w': ("block_timer_9", '}'),
+        'h': ("oneway_down_1", 'g'),
+        'i': ("oneway_up_1", 'f'),
+        'f': ("oneway_right_1", 'h'),
+        'g': ("oneway_left_1", 'i'),
+        'A': ("slider_shooter_up", 'F'),
+        'F': ("rocky_shooter_up", 'A'),
+        ' ': ("blank", '')
         }
 
     # Helper data for identifying walls and doing auto-rounding.
     wall = {}
-    for i in xrange(1, 10):
+    for i in range(1, 10):
         wall[str(i)] = 1
-    rounded_wall = { '0,1' : 2, '0,2' : 8, '1,0' : 6, '2,0' : 4, '1,1' : 3, '1,2' : 9, '2,1' : 1, '2,2' : 7 }
+    rounded_wall = {'0,1': 2, '0,2': 8, '1,0': 6, '2,0': 4,
+                    '1,1': 3, '1,2': 9, '2,1': 1, '2,2': 7}
 
-    def __init__(self, f, disp, newleveltemplate, setlevellist = None, hintmenuitems = None):
+    def __init__(self, f, disp, newleveltemplate,
+                 setlevellist=None, hintmenuitems=None):
         self.levels = []
         self.__disp = disp
 
         # First line is # of levels. We don't need/use this.
-        numlevels = f.readline()
+        _ = f.readline()
         while 1:
             l = f.readline()
             if l == "":
@@ -107,9 +109,11 @@ class KLevelEdit:
             # Each level has NAME<CRLF>Hint<CRLF>Exit message<CRLF>20x(Level data<CRLF>)
             lname = l.strip().upper()
             hint = f.readline().strip()
-            if hint == "": break
+            if hint == "":
+                break
             exitmsg = f.readline().strip()
-            if exitmsg == "": break
+            if exitmsg == "":
+                break
 
             # read in the board
             board = []
@@ -119,13 +123,19 @@ class KLevelEdit:
                     c = l[x]
 
                     # Edge tiles must be walls - as in original Kye, force this.
-                    if c not in KLevelEdit.wall and (x == 0 or y == 0 or x == xsize-1 or y == ysize-1):
+                    if c not in KLevelEdit.wall and (x == 0 or
+                                                     y == 0 or
+                                                     x == xsize-1 or
+                                                     y == ysize-1):
                         c = '5'
 
                     board.append(c)
 
             # The board, plus the level strings, makes the level. Add to our list of levels.
-            newlevel = { 'name': lname, 'hint': hint, 'exitmsg': exitmsg, 'board': board }
+            newlevel = {'name': lname,
+                        'hint': hint,
+                        'exitmsg': exitmsg,
+                        'board': board}
             self.levels.append(newlevel)
 
         # All done, close the file.
@@ -160,10 +170,10 @@ class KLevelEdit:
 
     def updatelevellist(self):
         """This pushes the useful level data in this level set to the frame class."""
-        if self.__setlevellist != None:
+        if self.__setlevellist is not None:
             self.__setlevellist(self.getlevels(), self.curlevel)
-        if self.__hintmenuitems != None:
-            self.__hintmenuitems(dlevel = (len(self.levels) > 1))
+        if self.__hintmenuitems is not None:
+            self.__hintmenuitems(dlevel=(len(self.levels) > 1))
 
     # Called from the view, add or delete levels
 
@@ -185,7 +195,7 @@ class KLevelEdit:
     def delete_level(self):
         """Delete the current level from this level set."""
         if len(self.levels) == 1:
-            raise RuntimeError, 'only 1 level left!'
+            raise RuntimeError('only 1 level left!')
         rlevel = self.levels.pop(self.curlevel)
         self.add_undo(("droppedlevel", self.curlevel, rlevel))
         self.__mods = self.__mods+1
@@ -209,8 +219,10 @@ class KLevelEdit:
 
     def undohint(self):
         """Send a hint to the frame about whether we can Undo at this point."""
-        if self.__hintmenuitems != None:
-            self.__hintmenuitems(undo = (self.__mods_lastcheckpoint != self.__mods and len(self.__undohist) > 0))
+        if self.__hintmenuitems is not None:
+            self.__hintmenuitems(
+                undo=(self.__mods_lastcheckpoint != self.__mods
+                      and len(self.__undohist) > 0))
 
     def add_undo(self, i):
         """underlying storage for undo - maintains a limited stack to store revokable edits"""
@@ -222,7 +234,8 @@ class KLevelEdit:
 
     def checkpoint(self):
         """Takes a snapshot of the currently edited level onto the undo stack"""
-        self.add_undo(("checkpoint", self.curlevel, deepcopy(self.levels[self.curlevel])))
+        self.add_undo(("checkpoint", self.curlevel,
+                       deepcopy(self.levels[self.curlevel])))
         self.__mods_lastcheckpoint = self.__mods
         self.__lastcheckpoint_level = self.curlevel
 
@@ -249,7 +262,7 @@ class KLevelEdit:
             self.levels.pop(ui[1])
             self.levels.insert(ui[1], ui[2])
         else:
-            raise RuntimeError, "bad undo"
+            raise RuntimeError("bad undo")
         # Update last checkpoint & current # of mods for this revision
         self.__mods_lastcheckpoint = 0
         for u in self.__undohist:
@@ -279,7 +292,7 @@ class KLevelEdit:
 
     def get_messages(self):
         """Returns the messages for the current level as a hash"""
-        return dict((t, self.levels[self.curlevel][t]) for t in ('name','hint','exitmsg'))
+        return dict((t, self.levels[self.curlevel][t]) for t in ('name', 'hint', 'exitmsg'))
 
     def getlevels(self):
         """Gets a list with the names of the levels in this level set, in order"""
@@ -292,7 +305,8 @@ class KLevelEdit:
 
     def wall_at(self, x, y):
         """Returns 1 if the nominated tile in the currently edited level is a wall (or is out of bounds), 0 otherwise"""
-        if x < 0 or y < 0 or y >= ysize or x >= xsize: return 1
+        if x < 0 or y < 0 or y >= ysize or x >= xsize:
+            return 1
         if self.levels[self.curlevel]['board'][xsize*y + x] in KLevelEdit.wall:
             return 1
         else:
@@ -300,22 +314,27 @@ class KLevelEdit:
 
     def autoround_cell(self, x, y):
         """Look at this cell, and if it is a wall, change it to be automatically rounded based on which neighbouring tiles are walls"""
-        if self.wall_at(x, y) == 0: return
+        if self.wall_at(x, y) == 0:
+            return
         h = self.wall_at(x-1, y) + 2*self.wall_at(x+1, y)
         v = self.wall_at(x, y-1) + 2*self.wall_at(x, y+1)
         try:
             n = KLevelEdit.rounded_wall["%d,%d" % (h, v)]
-        except KeyError,e:
+        except KeyError:
             n = 5
         self.set_at_simple(x, y, str(n))
 
     def autoround_at(self, x, y):
         """Call autoround_cell for all neighbouring tiles to this cell"""
         self.autoround_cell(x, y)
-        if x > 0:       self.autoround_cell(x-1, y)
-        if x < xsize-1: self.autoround_cell(x+1, y)
-        if y > 0:       self.autoround_cell(x, y-1)
-        if y < ysize-1: self.autoround_cell(x, y+1)
+        if x > 0:
+            self.autoround_cell(x-1, y)
+        if x < xsize-1:
+            self.autoround_cell(x+1, y)
+        if y > 0:
+            self.autoround_cell(x, y-1)
+        if y < ysize-1:
+            self.autoround_cell(x, y+1)
 
     def set_at(self, i, j, t):
         """Sets a given tile, plus updated neighbouring cells wall rounding, plus updates modification count and may checkpoint if needed"""
@@ -324,11 +343,11 @@ class KLevelEdit:
             if t != '5':
                 return
         try:
-            self.set_at_simple(i,j,t)
-        except IndexError, e:
+            self.set_at_simple(i, j, t)
+        except IndexError:
             return
         if self.__autoround:
-            self.autoround_at(i,j)
+            self.autoround_at(i, j)
 
     def set_at_simple(self, i, j, t):
         """Edits a single cell, and redraws it"""
@@ -360,13 +379,15 @@ class KLevelEdit:
 
     def saveto(self, f):
         """Save the whole level set to a given file stream"""
-        f.write("%d\r\n" % len(self.levels))
+        f.write(bytes("%d\r\n" % len(self.levels), "utf-8"))
         for l in self.levels:
-            f.write("%s\r\n%s\r\n%s\r\n" % (l['name'], l['hint'], l['exitmsg']))
+            f.write(bytes("%s\r\n%s\r\n%s\r\n" %
+                          (l['name'], l['hint'], l['exitmsg']),
+                          "utf-8"))
             i = 0
-            for y in xrange(ysize):
-                for x in xrange(xsize):
-                    f.write(l['board'][i])
+            for y in range(ysize):
+                for x in range(xsize):
+                    f.write(bytes(l['board'][i], "utf-8"))
                     i = i + 1
-                f.write("\r\n")
+                f.write(b"\r\n")
                 f.flush()

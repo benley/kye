@@ -18,12 +18,16 @@
 
 """kye.common - Common utility functions and classes.
 Exposed constants:
+
 xsize, ysize - size of the game playing area.
+
 version - version number of this release of the game.
-kyepaths - the list of paths that we will try for opening levels given on the command line, and for searching for tilesets."""
+
+kyepaths - the list of paths that we will try for opening levels given on the
+           command line, and for searching for tilesets."""
 
 import tarfile
-from os.path import exists, join
+import os.path
 
 xsize = 30
 ysize = 20
@@ -32,31 +36,35 @@ version = "1.0"
 
 kyepaths = ("levels", "/usr/local/share/kye", "/usr/share/kye")
 
+
 def tryopen(filename, paths):
     """Returns a reading file handle for filename, searching through directories in the supplied paths."""
     try:
         f = open(filename)
         return f
-    except IOError, e:
+    except IOError:
         for path in paths:
             try:
-                f = open(join(path, filename))
+                f = open(os.path.join(path, filename))
                 return f
-            except IOError, e:
+            except IOError:
                 pass
-    raise IOError, "Unable to find file "+filename
+    raise IOError("Unable to find file %s" % filename)
+
 
 def findfile(filename):
     """Looks for filename, searching a built-in list of directories; returns the path where it finds the file."""
-    if exists(filename):
+    if os.path.exists(filename):
         return filename
     for path in kyepaths:
-        x = join(path, filename)
-        if exists(x):
+        x = os.path.join(path, filename)
+        if os.path.exists(x):
             return x
+
 
 class KyeImageDir:
     """Class for retrieving images from a tileset tar.gz."""
+
     def __init__(self, filename):
         self.tiles = {}
         tar = tarfile.open(filename, 'r|gz')

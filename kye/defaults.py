@@ -17,8 +17,7 @@
 #
 """kye.defaults - contains the KyeDefaults class."""
 
-from os import environ
-from os.path import join, basename, expanduser
+import os.path
 
 
 class KyeDefaults:
@@ -28,7 +27,7 @@ class KyeDefaults:
 
     def __init__(self):
         # Path to the config file.
-        self.__cf = join(expanduser("~"), ".kye.config")
+        self.__cf = os.path.join(os.path.expanduser("~"), ".kye.config")
 
         # Initialise.
         self.__count = 0
@@ -55,7 +54,7 @@ class KyeDefaults:
                         # Format here is filename<TAB>known_level<TAB>known_level<TAB>...
                         fields = line.split("\t")
                         path = fields.pop(0)
-                        filename = basename(path)
+                        filename = os.path.basename(path)
                         self.__known[filename] = fields
                         self.__path[filename] = path
 
@@ -73,12 +72,12 @@ class KyeDefaults:
                         if key == "Size":
                             self.settings[key] = value
 
-        except IOError, e:
+        except IOError:
             pass
 
     def get_known_levels(self, path):
         """Get all known level names for the given filename."""
-        fname = basename(path)
+        fname = os.path.basename(path)
         if fname in self.__known:
             return self.__known[fname]
         return []
@@ -86,14 +85,15 @@ class KyeDefaults:
     def add_known(self, path, level_name):
         """For this kye file, we now know this level name."""
         # Index by just the filename
-        fname = basename(path)
+        fname = os.path.basename(path)
         self.__path[fname] = path
 
         # Remember that this is the most recently loaded level
         self.__orderfiles[fname] = self.__count
         self.__count = self.__count + 1
 
-        # Add this level to the known list for this file (adding the file to the dictionary if new)
+        # Add this level to the known list for this file (adding the file to
+        # the dictionary if new)
         if fname not in self.__known:
             self.__known[fname] = []
         if level_name not in self.__known[fname]:
@@ -101,8 +101,8 @@ class KyeDefaults:
 
     def get_recent(self):
         """Returns paths to the five most recently loaded .kye files."""
-        known_names = self.__known.keys()
-        known_names.sort(lambda x, y: cmp(self.__orderfiles[x], self.__orderfiles[y]))
+        known_names = sorted(self.__known.keys(),
+                             key=lambda x: self.__orderfiles[x])
         return [self.__path[name] for name in known_names[-5:]]
 
     def save(self):
@@ -112,8 +112,8 @@ class KyeDefaults:
 
             # Known levels etc
             s.write(KyeDefaults.known_header+"\n")
-            known_names = self.__known.keys()
-            known_names.sort(lambda x, y: cmp(self.__orderfiles[x], self.__orderfiles[y]))
+            known_names = sorted(self.__known.keys(),
+                                 key=lambda x: self.__orderfiles[x])
             for name in known_names:
                 s.write(self.__path[name] + "\t"
                         + "\t".join(self.__known[name]) + "\n")
@@ -121,9 +121,9 @@ class KyeDefaults:
 
             # other settings
             s.write(KyeDefaults.settings_header+"\n")
-            for setting,value in self.settings.iteritems():
+            for setting, value in self.settings.items():
                 s.write("%s\t%s\n" % (setting, value))
             s.write("\n")
 
-        except IOError, e:
+        except IOError:
             pass

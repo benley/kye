@@ -21,7 +21,8 @@
 
 from os.path import basename
 from random import Random
-import gobject
+
+from gi.repository import GObject
 
 from kye.common import tryopen, kyepaths
 from kye.game import KGame, KGameFormatError
@@ -29,7 +30,10 @@ from kye.input import KyeRecordedInput, KDemoFormatError, KDemoFileMismatch
 
 
 class KyeApp:
-    """This class is a wrapper around the game class, which handles various extra-game actions, such as selecting whether the game is taking input from the user or a recording, loading new levels and changeover between levels."""
+    """This class is a wrapper around the game class, which handles various
+    extra-game actions, such as selecting whether the game is taking input from
+    the user or a recording, loading new levels and changeover between levels.
+    """
 
     def __init__(self, defaults, playfile="intro.kye", playlevel=""):
         self.__playfile = playfile
@@ -48,7 +52,7 @@ class KyeApp:
 
         # Run first tick - loads the level - immediately
         self.do_tick()
-        gobject.timeout_add(100, self.do_tick)
+        GObject.timeout_add(100, self.do_tick)
 
         self.__frame.main()
 
@@ -79,9 +83,10 @@ class KyeApp:
             # If we are still playing, run a gametick and update the screen.
             if self.__gamestate == "playing level":
                 self.__game.dotick()
-                self.__frame.canvas.game_redraw(self.__game, self.__game.invalidate)
+                self.__frame.canvas.game_redraw(self.__game,
+                                                self.__game.invalidate)
                 self.__frame.stbar.update(diamonds=self.__game.diamonds)
-                if self.__game.thekye != None:
+                if self.__game.thekye is not None:
                     self.__frame.stbar.update(kyes=self.__game.thekye.lives)
 
         # And tell glib knows that we want this timer event to keep occurring.
@@ -97,9 +102,13 @@ class KyeApp:
         rng = Random()
         try:
             if self.__recto:
-                self.__frame.moveinput.record_to(self.__recto, playfile = self.__playfile, playlevel = self.__playlevel, rng = rng)
-        except IOError, e:
-            self.__frame.error_message(message="Failed to write to "+self.__recto)
+                self.__frame.moveinput.record_to(self.__recto,
+                                                 playfile=self.__playfile,
+                                                 playlevel=self.__playlevel,
+                                                 rng=rng)
+        except IOError:
+            self.__frame.error_message(
+                message="Failed to write to %s " % self.__recto)
 
         self.__recto = None
         if self.__frame.moveinput.is_recording():
@@ -108,18 +117,19 @@ class KyeApp:
         # If playing a demo, open it & read the header
         self.__frame.moveinput.clear()
         move_source = self.__frame.moveinput
-        if self.__playback != None:
+        if self.__playback is not None:
             try:
-                move_source = KyeRecordedInput(self.__playfile, self.__playback)
+                move_source = KyeRecordedInput(self.__playfile,
+                                               self.__playback)
                 self.__playlevel = move_source.get_level()
                 move_source.set_rng(rng)
                 self.__frame.extra_title("Replay")
-            except KDemoFileMismatch, e:
-                self.__frame.error_message(message="Recording is for "+e.filename+"; you must load this level set first")
-            except KDemoFormatError, e:
+            except KDemoFileMismatch as e:
+                self.__frame.error_message(message="Recording is for %s; you must load this level set first" % e.filename)
+            except KDemoFormatError:
                 self.__frame.error_message(message="This file is not a Kye recording")
-            except IOError, e:
-                self.__frame.error_message(message="Failed to read "+self.__playback)
+            except IOError:
+                self.__frame.error_message(message="Failed to read %s" % self.__playback)
             self.__playback = None
 
         # Now try loading the actual level
@@ -127,27 +137,31 @@ class KyeApp:
             gamefile = tryopen(self.__playfile, kyepaths)
 
             # Create the game state object.
-            self.__game = KGame(gamefile, want_level = self.__playlevel,
-                                movesource = move_source, rng = rng)
+            self.__game = KGame(gamefile, want_level=self.__playlevel,
+                                movesource=move_source, rng=rng)
 
             # And remember that we have reached this level.
             self.__defaults.add_known(self.__playfile, self.__game.thislev)
 
             # UI updates - level name in window title, hint in the status bar.
             self.__frame.level_title(self.__game.thislev)
-            self.__frame.stbar.update(hint=self.__game.hint, levelnum=self.__game.levelnum)
-        except KeyError, e:
-            self.__frame.error_message(message="Level "+self.__playlevel+" not known")
-        except KGameFormatError, e:
-            self.__frame.error_message(message=self.__playfile + "is not a valid Kye level file.")
-        except IOError, e:
-            self.__frame.error_message(message="Failed to read "+self.__playfile)
-        if self.__game != None:
+            self.__frame.stbar.update(hint=self.__game.hint,
+                                      levelnum=self.__game.levelnum)
+        except KeyError:
+            self.__frame.error_message(
+                message="Level %s not known" % self.__playlevel)
+        except KGameFormatError:
+            self.__frame.error_message(
+                message="%s is not a valid Kye level file." % self.__playfile)
+        except IOError:
+            self.__frame.error_message(
+                message="Failed to read %s" % self.__playfile)
+        if self.__game is not None:
             self.__gamestate = "playing level"
         else:
             self.__gamestate = ""
 
-    def restart(self, recordto = None, demo = None):
+    def restart(self, recordto=None, demo=None):
         """Restarts the current level, optionally with recording or playing a demo (specified by recordto or demo parameters respectively)."""
         self.__gamestate = "starting level"
         self.__recto = recordto
