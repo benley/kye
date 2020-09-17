@@ -1,6 +1,7 @@
+
 { lib, buildPythonApplication, pygobject3, gtk3
 , wrapGAppsHook, gobject-introspection
-, pango, pycairo }:
+, pango, pycairo, pyxdg }:
 
 buildPythonApplication rec {
   pname = "kye";
@@ -21,5 +22,6 @@ buildPythonApplication rec {
     pygobject3
     gtk3
     pycairo
+    pyxdg
   ];
 }

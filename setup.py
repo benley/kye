@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 from glob import glob
 
 share = glob("levels/*.kye")
@@ -16,14 +16,18 @@ setup(
     scripts=["Kye", "Kye-edit"],
     packages=["kye"],
     data_files=[
-            ("share/kye", share),
-            ],
+        ("share/kye", share),
+    ],
+    install_requires=[
+        "pygobject>=3",
+        "pyxdg",
+    ],
     classifiers=[
-            "Development Status :: 4 - Beta",
-            "Topic :: Games/Entertainment :: Puzzle Games",
-            "Intended Audience :: End Users/Desktop",
-            "Programming Language :: Python",
-            "License :: OSI Approved :: GNU General Public License (GPL)",
-            "User Interface :: Graphical :: Gnome"
-            ],
+        "Development Status :: 4 - Beta",
+        "Topic :: Games/Entertainment :: Puzzle Games",
+        "Intended Audience :: End Users/Desktop",
+        "Programming Language :: Python",
+        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "User Interface :: Graphical :: Gnome"
+    ],
     )

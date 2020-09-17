@@ -19,15 +19,19 @@
 
 import os.path
 
+from xdg import BaseDirectory
+
 
 class KyeDefaults:
-    """Class for reading, querying and saving game preferences, including the list of recently-played files and known level names."""
+    """Class for reading, querying and saving game preferences,
+    including the list of recently-played files and known level names.
+    """
     known_header = "[Known Levels]"
     settings_header = "[Settings]"
 
     def __init__(self):
         # Path to the config file.
-        self.__cf = os.path.join(os.path.expanduser("~"), ".kye.config")
+        cf = BaseDirectory.load_first_config("kye/kye.config")
 
         # Initialise.
         self.__count = 0
@@ -36,9 +40,12 @@ class KyeDefaults:
         self.__path = {}
         self.settings = {}
 
+        if cf is None:
+            return
+
         # Try reading the config file.
         try:
-            s = open(self.__cf)
+            s = open(cf)
             while 1:
                 # Read header lines until done.
                 line = s.readline().strip()
@@ -108,22 +115,24 @@ class KyeDefaults:
     def save(self):
         """Try to save the configuration back to the config file."""
         try:
-            s = open(self.__cf, "w")
+            path = os.path.join(BaseDirectory.save_config_path("kye"),
+                                "kye.config")
+            with open(path, "w") as s:
+                # Known levels etc
+                s.write(KyeDefaults.known_header+"\n")
+                known_names = sorted(self.__known.keys(),
+                                     key=lambda x: self.__orderfiles[x])
+                for name in known_names:
+                    s.write(self.__path[name] + "\t"
+                            + "\t".join(self.__known[name]) + "\n")
+                s.write("\n")
 
-            # Known levels etc
-            s.write(KyeDefaults.known_header+"\n")
-            known_names = sorted(self.__known.keys(),
-                                 key=lambda x: self.__orderfiles[x])
-            for name in known_names:
-                s.write(self.__path[name] + "\t"
-                        + "\t".join(self.__known[name]) + "\n")
-            s.write("\n")
+                # other settings
+                s.write(KyeDefaults.settings_header+"\n")
+                for setting, value in self.settings.items():
+                    s.write("%s\t%s\n" % (setting, value))
+                s.write("\n")
 
-            # other settings
-            s.write(KyeDefaults.settings_header+"\n")
-            for setting, value in self.settings.items():
-                s.write("%s\t%s\n" % (setting, value))
-            s.write("\n")
-
-        except IOError:
+        except IOError as err:
+            print("Failed to save settings: %s" % err)
             pass
