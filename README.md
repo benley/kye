@@ -30,19 +30,21 @@ may be newer and better. There are quite a few things to install I'm afraid, as
 there doesn't seem to be a single installer available that includes the bits
 that you need.
 
-# Install Python 2.6 <http://www.python.org/ftp/python/2.6.6/python-2.6.6.msi> to C:\Program Files\Python26.
-# Download GTK 2.16 <http://ftp.gnome.org/pub/gnome/binaries/win32/gtk+/2.16/gtk+-bundle_2.16.6-20100912_win32.zip> and extract it to C:\Program Files\gtk+_win32.
-# Install pygtk 2.16 for python 2.6 <http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.16/pygtk-2.16.0.win32-py2.6.exe>.
-# Install pygobject for python 2.6 <http://ftp.gnome.org/pub/GNOME/binaries/win32/pygobject/2.20/pygobject-2.20.0.win32-py2.6.exe>.
-# Install pycairo for python 2.6 <http://ftp.gnome.org/pub/GNOME/binaries/win32/pycairo/1.8/pycairo-1.8.6.win32-py2.6.exe>.
-# Having run the installers for all of those (except gtk+ which as noted have to extract yourself), you can then download and extract Python Kye for Windows (that's what you've done already to be reading this file). Extract it to your "My Documents" is fine if you like.
-# Run a command prompt, and go to the kye-1.0 directory that you just extracted.
-# In the command prompt run
+- Install [Python 2.6](http://www.python.org/ftp/python/2.6.6/python-2.6.6.msi) to `C:\Program Files\Python26`.
+- Download [GTK 2.16](http://ftp.gnome.org/pub/gnome/binaries/win32/gtk+/2.16/gtk+-bundle_2.16.6-20100912_win32.zip) and extract it to `C:\Program Files\gtk+_win32`.
+- Install [pygtk 2.16 for python 2.6](http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.16/pygtk-2.16.0.win32-py2.6.exe).
+- Install [pygobject for python 2.6](http://ftp.gnome.org/pub/GNOME/binaries/win32/pygobject/2.20/pygobject-2.20.0.win32-py2.6.exe).
+- Install [pycairo for python 2.6](http://ftp.gnome.org/pub/GNOME/binaries/win32/pycairo/1.8/pycairo-1.8.6.win32-py2.6.exe).
+- Having run the installers for all of those (except gtk+ which as noted have to extract yourself), you can then download and extract Python Kye for Windows (that's what you've done already to be reading this file). Extract it to your "My Documents" is fine if you like.
+- Run a command prompt, and go to the `kye-1.0` directory that you just extracted.
+- In the command prompt run
 
-    PATH=%PATH%;C:\Program Files\Python26;C:\Program Files\gtk+_win32
-    python Kye.py
+```bat
+PATH=%PATH%;C:\Program Files\Python26;C:\Program Files\gtk+_win32
+python Kye.py
+```
 
-# And you should see Kye running now.
+  And you should see Kye running now.
 
 Playing
 -------
@@ -88,9 +90,9 @@ screen sizes; these are included by default in the Linux version. My images are
 open-source like Python Kye itself, whereas the original game images are owned
 by Colin Garbutt, which is why I don't distribute those as part of this package
 - if you prefer to use the original game images, you can download the
-  alternative images.tar.gz from my website, and replace the images.tar.gz in
+alternative `images.tar.gz` from my website, and replace the `images.tar.gz` in
 this directory (or, if you have already installed Python Kye, drop them in
-either /usr/local/share/kye/ or /usr/share/kye, or just in the directory where
+either `/usr/local/share/kye/` or `/usr/share/kye`, or just in the directory where
 you run Kye). (Note that the Windows version ships with the original game
 images by default.)
 
