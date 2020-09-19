@@ -21,6 +21,7 @@ setup(
     install_requires=[
         "pygobject>=3",
         "pyxdg",
+        "pycairo",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
