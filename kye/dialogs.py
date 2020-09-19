@@ -50,8 +50,8 @@ class GotoDialog(Gtk.Dialog):
         self.cb = Gtk.ComboBoxText.new_with_entry()
         for level in knownlevs:
             self.cb.append_text(level)
-        # TODO: what's this supposed to do?
-        # self.cb.child.set_activates_default(True)
+        # Make it so hitting Enter activates the ACCEPT action
+        self.cb.get_child().set_activates_default(True)
         self.vbox.pack_start(self.cb, True, True, 0)
 
         self.cb.show()
