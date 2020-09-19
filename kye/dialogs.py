@@ -47,7 +47,7 @@ class GotoDialog(Gtk.Dialog):
         self.vbox.pack_start(self.label, True, True, 0)
 
         # Add combobox to select known level or enter level name.
-        self.cb = Gtk.ComboBoxText()
+        self.cb = Gtk.ComboBoxText.new_with_entry()
         for level in knownlevs:
             self.cb.append_text(level)
         # TODO: what's this supposed to do?
