@@ -61,13 +61,6 @@ class GotoDialog(Gtk.Dialog):
         return self.cb.get_active_text()
 
 
-def pbimage(img):
-    """Make a Gtk.Image from a pixbuf."""
-    i = Gtk.Image()
-    i.set_from_pixbuf(img)
-    return i
-
-
 def llabel(txt):
     """Return a centered, line-wrapped label."""
     label = Gtk.Label(txt)
@@ -82,57 +75,118 @@ class KyeHelpDialog(Gtk.Dialog):
     def __init__(self, parent=None, after=None, message=None, getimage=None):
         Gtk.Dialog.__init__(self, title="Help", parent=parent,
                             flags=Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        self.getimage = getimage
+
+        self.set_default_size(800, 600)
         self.add_button(Gtk.STOCK_OK, 0)
         self.connect("response", self.response)
-        table = Gtk.Table(15, 2)
-        self.vbox.pack_start(table, True, True, 0)
-        table.attach(pbimage(getimage("kye")), 0, 1, 0, 1)
-        table.attach(llabel("You are Kye. Move by point-and-click with the mouse, or the arrow keys or numeric keypad on the keyboard (note that you can move diagonally, even using the keyboard)."), 1, 2, 0, 1)
-        table.attach(pbimage(getimage("diamond_1")), 0, 1, 1, 2)
-        table.attach(llabel("The object of the game is to collect all the diamonds."), 1, 2, 1, 2)
-        table.attach(pbimage(getimage("wall5")), 0, 1, 2, 3)
-        table.attach(llabel("These are solid walls."), 1, 2, 2, 3)
-        table.attach(pbimage(getimage("block")), 0, 1, 3, 4)
-        table.attach(llabel("These are blocks, which you can push."), 1, 2, 3, 4)
-        table.attach(pbimage(getimage("slider_right")), 0, 1, 4, 5)
-        table.attach(llabel("Sliders move in the direction of the arrow until they hit an obstacle."), 1, 2, 4, 5)
-        table.attach(pbimage(getimage("rocky_right")), 0, 1, 5, 6)
-        table.attach(llabel("Rockies move like sliders, but they roll around round objects, like rounded walls and other rockies."), 1, 2, 5, 6)
-        table.attach(pbimage(getimage("blocke")), 0, 1, 6, 7)
-        table.attach(llabel("Soft blocks you can destroy by moving into them."), 1, 2, 6, 7)
-        mh = Gtk.HBox()
-        mh.pack_start(pbimage(getimage("blob_1")), True, True, 0)
-        mh.pack_start(pbimage(getimage("gnasher_1")), True, True, 0)
-        mh.pack_start(pbimage(getimage("spike_1")), True, True, 0)
-        mh.pack_start(pbimage(getimage("twister_1")), True, True, 0)
-        mh.pack_start(pbimage(getimage("snake_1")), True, True, 0)
-        table.attach(mh, 0, 1, 7, 8)
-        table.attach(llabel("Monsters kill you if they touch you. You do have 3 lives, though."), 1, 2, 7, 8)
-        table.attach(pbimage(getimage("sentry_right")), 0, 1, 8, 9)
-        table.attach(llabel("Sentries pace back and forward, and push other objects."), 1, 2, 8, 9)
-        table.attach(pbimage(getimage("black_hole_1")), 0, 1, 9, 10)
-        table.attach(llabel("Objects entering a black hole are destroyed."), 1, 2, 9, 10)
-        table.attach(pbimage(getimage("slider_shooter_right")), 0, 1, 10, 11)
-        table.attach(llabel("Shooters create new sliders or rockies."), 1, 2, 10, 11)
-        table.attach(pbimage(getimage("block_timer_5")), 0, 1, 11, 12)
-        table.attach(llabel("Timer blocks disappear when their time runs out."), 1, 2, 11, 12)
-        table.attach(pbimage(getimage("turner_clockwise")), 0, 1, 12, 13)
-        table.attach(llabel("Turning blocks change the direction of sliders and rockies."), 1, 2, 12, 13)
-        table.attach(pbimage(getimage("sticky_horizontal")), 0, 1, 13, 14)
-        table.attach(llabel("Magnets (also called sticky blocks) allow you to pull objects."), 1, 2, 13, 14)
-        table.attach(pbimage(getimage("oneway_right_1")), 0, 1, 14, 15)
-        table.attach(llabel("One-way doors only allow Kye though, and only in one direction."), 1, 2, 14, 15)
-        foottext = llabel("If you make a mistake, or get stuck in a level, go to the Level menu and select Restart Level. To skip to a particular level (if you've played a set of levels before and already know the level name you want to get to), go to the Level menu and select Goto Level. You can load a new set of levels by specifying the .kye file on the command line, or by opening it via the File menu.")
-        foottext.set_justify(Gtk.Justification.LEFT)
-        foottext.set_line_wrap(True)
-        self.vbox.pack_start(foottext, True, True, 0)
-        foottext.show()
-        table.set_row_spacings(4)
-        table.set_col_spacings(2)
-        table.show_all()
+
+        self.grid = Gtk.Grid()
+
+        box = self.get_content_area()
+        box.add(self.grid)
+
+        scrolledwindow = Gtk.ScrolledWindow()
+        scrolledwindow.set_hexpand(True)
+        scrolledwindow.set_vexpand(True)
+        self.grid.attach(scrolledwindow, 0, 1, 3, 1)
+
+        self.textview = Gtk.TextView()
+        self.textview.set_editable(False)
+        self.textview.set_cursor_visible(False)
+        self.textview.set_wrap_mode(Gtk.WrapMode.WORD)
+
+        self.textbuffer = self.textview.get_buffer()
+
+        self.insert_image("kye")
+        self.insert_markup(
+            "You are Kye. Move by point-and-click with the mouse, or the arrow"
+            " keys or numeric keypad on the keyboard (note that you can move"
+            " diagonally, even using the keyboard).\n")
+
+        self.insert_image("diamond_1")
+        self.insert_markup(
+            "The object of the game is to collect all the diamonds.\n")
+
+        self.insert_image("wall5")
+        self.insert_markup(
+            "These are solid walls.\n")
+
+        self.insert_image("block")
+        self.insert_markup(
+            "These are blocks, which you can push.\n")
+
+        self.insert_image("slider_right")
+        self.insert_markup(
+            "Sliders move in the direction of the arrow until"
+            " they hit an obstacle.\n")
+
+        self.insert_image("rocky_right")
+        self.insert_markup(
+            "Rockies move like sliders, but they roll around round objects,"
+            " like rounded walls and other rockies.\n")
+
+        self.insert_image("blocke")
+        self.insert_markup(
+            "Soft blocks you can destroy by moving into them.\n")
+
+        for img in ["blob_1", "gnasher_1", "spike_1", "twister_1", "snake_1"]:
+            self.insert_image(img)
+        self.insert_markup(
+            "Monsters kill you if they touch you. You do have 3 lives,"
+            " though.\n")
+
+        self.insert_image("sentry_right")
+        self.insert_markup(
+            "Sentries pace back and forward, and push other objects.\n")
+
+        self.insert_image("black_hole_1")
+        self.insert_markup(
+            "Objects entering a black hole are destroyed.\n")
+
+        self.insert_image("slider_shooter_right")
+        self.insert_markup(
+            "Shooters create new sliders or rockies.\n")
+
+        self.insert_image("block_timer_5")
+        self.insert_markup(
+            "Timer blocks disappear when their time runs out.\n")
+
+        self.insert_image("turner_clockwise")
+        self.insert_markup(
+            "Turning blocks change the direction of sliders and rockies.\n")
+
+        self.insert_image("sticky_horizontal")
+        self.insert_markup(
+            "Magnets (also called sticky blocks) allow you to pull objects.\n")
+
+        self.insert_image("oneway_right_1")
+        self.insert_markup(
+            "One-way doors only allow Kye though, and only in"
+            " one direction.\n")
+
+        self.insert_markup(
+            "\nIf you make a mistake, or get stuck in a level, go to the Level"
+            " menu and select Restart Level. To skip to a particular level (if"
+            " you've played a set of levels before and already know the level"
+            " name you want to get to), go to the Level menu and select Goto"
+            " Level. You can load a new set of levels by specifying the .kye"
+            " file on the command line, or by opening it via the File menu.\n")
+
+        scrolledwindow.add(self.textview)
+
+        self.show_all()
 
     def response(self, a, rid):
         self.destroy()
+
+    def insert_markup(self, markup: str):
+        return self.textbuffer.insert_markup(self.textbuffer.get_end_iter(),
+                                             markup, -1)
+
+    def insert_image(self, img: str):
+        return self.textbuffer.insert_pixbuf(self.textbuffer.get_end_iter(),
+                                             self.getimage(img))
 
 
 def kyeffilter():
