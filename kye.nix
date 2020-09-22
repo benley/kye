@@ -24,4 +24,7 @@ buildPythonApplication rec {
     pycairo
     pyxdg
   ];
+  shellHook = ''
+    export MYPYPATH=${pycairo}/${pycairo.pythonModule.sitePackages}/''${MYPYPATH:+:$MYPYPATH}
+  '';
 }
