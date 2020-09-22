@@ -22,7 +22,7 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
 
-from kye.common import xsize, ysize
+from kye.common import XSIZE, YSIZE
 
 
 class KPalette(Gtk.DrawingArea):
@@ -68,7 +68,7 @@ class KPalette(Gtk.DrawingArea):
     def settilesize(self, tilesize):
         """Set the tile size for the display."""
         self.__tilesize = tilesize
-        self.set_size_request(self.__tilesize*xsize, self.__tilesize+8)
+        self.set_size_request(self.__tilesize*XSIZE, self.__tilesize+8)
 
     def set_target(self, g):
         """Sets the game object towards which editing events will be directed."""
@@ -92,7 +92,7 @@ class KPalette(Gtk.DrawingArea):
 
         # Set selected tool & redraw palette (so new item shown as selected)
         self.selected = self.palitems[i]
-        self.queue_draw_area(0, 4, self.__tilesize*xsize, self.__tilesize+4)
+        self.queue_draw_area(0, 4, self.__tilesize*XSIZE, self.__tilesize+4)
 
     # Events in the palette
 
@@ -112,12 +112,12 @@ class KPalette(Gtk.DrawingArea):
         """Handle redraws."""
         # White line just below the game area
         cairo_ctx.set_source_rgb(1, 1, 1)
-        cairo_ctx.rectangle(0, 0, self.__tilesize*xsize, 4)
+        cairo_ctx.rectangle(0, 0, self.__tilesize*XSIZE, 4)
         cairo_ctx.fill()
 
         # Fill black below that, where the tool palette goes
         cairo_ctx.set_source_rgb(0, 0, 0)
-        cairo_ctx.rectangle(0, 4, self.__tilesize*xsize, self.__tilesize+4)
+        cairo_ctx.rectangle(0, 4, self.__tilesize*XSIZE, self.__tilesize+4)
         cairo_ctx.fill()
 
         x = 0
@@ -156,7 +156,7 @@ class KPalette(Gtk.DrawingArea):
 
     def mouse_motion_event(self, x, y):
         """Handle mouse motion event."""
-        if x > xsize or y > ysize or x < 0 or y < 0:
+        if x > XSIZE or y > YSIZE or x < 0 or y < 0:
             return
         if self.mousedown is not None:
             if x != self.mousedown[0] or y != self.mousedown[1]:

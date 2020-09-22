@@ -19,12 +19,15 @@
 """kye.app - the Kye game application. Just contains the KyeApp class.
 """
 
-from os.path import basename
+from pathlib import Path
 from random import Random
+from typing import Literal, List, Optional
 
 from gi.repository import GObject
 
-from kye.common import tryopen, kyepaths
+from kye.common import tryopen, KYEPATHS
+from kye.defaults import KyeDefaults
+from kye.frame import KFrame
 from kye.game import KGame, KGameFormatError
 from kye.input import KyeRecordedInput, KDemoFormatError, KDemoFileMismatch
 
@@ -35,18 +38,21 @@ class KyeApp:
     the user or a recording, loading new levels and changeover between levels.
     """
 
-    def __init__(self, defaults, playfile="intro.kye", playlevel=""):
+    def __init__(self,
+                 defaults: KyeDefaults,
+                 playfile: Path = Path("intro.kye"),
+                 playlevel: str = "") -> None:
         self.__playfile = playfile
         self.__playlevel = playlevel
         self.__gamestate = "starting level"
 
-        self.__recto = None
-        self.__playback = None
-        self.__game = None
-        self.__frame = None
+        self.__recto: Optional[Path] = None
+        self.__playback: Optional[Path] = None
+        self.__game: Optional[KGame] = None
+        self.__frame: Optional[KFrame] = None
         self.__defaults = defaults
 
-    def run(self, frame):
+    def run(self, frame: KFrame) -> None:
         """Run the application. You must supply a 'KFrame' for the UI."""
         self.__frame = frame
 
@@ -59,7 +65,7 @@ class KyeApp:
         # End any recording going on at the time of exit.
         self.__frame.moveinput.end_record()
 
-    def do_tick(self):
+    def do_tick(self) -> Literal[True]:
         """Performs all actions required for one clock tick in the game"""
 
         # First, we handle any extra-game actions like switching levels.
@@ -70,6 +76,8 @@ class KyeApp:
 
         # If we are in a level...
         if self.__gamestate == "playing level":
+            assert self.__game is not None   # for mypy
+            assert self.__frame is not None  # for mypy
             # Check if the level has been completed.
             if self.__game.diamonds == 0:
                 self.__gamestate = "between levels"
@@ -92,9 +100,11 @@ class KyeApp:
         # And tell glib knows that we want this timer event to keep occurring.
         return True
 
-    def __start_new_level(self):
+    def __start_new_level(self) -> None:
         """Performs actions needed when beginning a new level."""
         # Clean up any previous recording/playback title & close existing record
+        assert self.__frame is not None  # for mypy
+
         self.__frame.moveinput.end_record()
         self.__frame.extra_title(None)
 
@@ -134,7 +144,7 @@ class KyeApp:
 
         # Now try loading the actual level
         try:
-            gamefile = tryopen(self.__playfile, kyepaths)
+            gamefile = tryopen(self.__playfile, KYEPATHS)
 
             # Create the game state object.
             self.__game = KGame(gamefile, want_level=self.__playlevel,
@@ -161,24 +171,29 @@ class KyeApp:
         else:
             self.__gamestate = ""
 
-    def restart(self, recordto=None, demo=None):
-        """Restarts the current level, optionally with recording or playing a demo (specified by recordto or demo parameters respectively)."""
+    def restart(self,
+                recordto: Optional[Path] = None,
+                demo: Optional[Path] = None) -> None:
+        """Restarts the current level, with optional recording or playback
+        (specified by recordto or demo parameters respectively).
+        """
         self.__gamestate = "starting level"
         self.__recto = recordto
         self.__playback = demo
+        assert self.__game is not None  # for mypy
         self.__playlevel = self.__game.thislev
 
-    def goto(self, lname):
+    def goto(self, lname: str) -> None:
         """Jump to the named level."""
         self.__gamestate = "starting level"
         self.__playlevel = lname.upper()
 
-    def open(self, fname):
+    def open(self, fname: Path) -> None:
         """Open a new set of levels from the supplied filename."""
         self.__playfile = fname
         self.__playlevel = ""
         self.__gamestate = "starting level"
 
-    def known_levels(self):
+    def known_levels(self) -> List[str]:
         """Returns a list of levels that the player knows about from this level set."""
-        return self.__defaults.get_known_levels(basename(self.__playfile))
+        return self.__defaults.get_known_levels(self.__playfile)

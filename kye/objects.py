@@ -18,6 +18,7 @@
 
 """Classes for individual objects in the game, implementing their behaviour and animations."""
 
+import abc
 from random import Random
 
 dirmap = ("up", "left", "right", "down")
@@ -27,13 +28,13 @@ def direction(dx, dy):
     return dirmap[dy + 1 + (dx + dy + 1) // 2]
 
 
-class Base:
+class Base(metaclass=abc.ABCMeta):
     """This is the virtual base-class for all in-game objects."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def roundness(self):
+    def roundness(self) -> int:
         """Returns the 'roundness' of this object.
 
         A roundness of 0 means that an object is not round (so, a rounder
@@ -45,12 +46,15 @@ class Base:
         # default - not round
         return 0
 
-    def freq(self):
+    def freq(self) -> int:
         """Returns how often this object may change state.
 
         If this returns 0, the object never changes. Otherwise, this object
         should 'think', and may change its graphic, every freq/10 seconds."""
         return 0
+
+    @abc.abstractmethod
+    def image(self, af: int) -> str: pass
 
 
 class Kye(Base):
@@ -562,7 +566,8 @@ class Shooter(Thinker):
         self.pulltomagnet(game, x, y)
         return True
 
-    def freq(self): return 7
+    def freq(self):
+        return 7
 
 
 class BlackHole(Thinker):

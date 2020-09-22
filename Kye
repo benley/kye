@@ -18,11 +18,12 @@
 #    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-from kye.frame import KFrame
-from kye.defaults import KyeDefaults
-from kye.app import KyeApp
-
+from pathlib import Path
 from sys import argv
+
+from kye.app import KyeApp
+from kye.defaults import KyeDefaults
+from kye.frame import KFrame
 
 
 def main() -> None:
@@ -30,11 +31,13 @@ def main() -> None:
     defaults = KyeDefaults()
 
     # Load file & level if specified on the command line.
-    if len(argv) > 1:
-        if len(argv) > 2:
-            k = KyeApp(defaults=defaults, playfile=argv[1], playlevel=argv[2])
-        else:
-            k = KyeApp(defaults=defaults, playfile=argv[1])
+    if len(argv) > 2:
+        k = KyeApp(defaults=defaults,
+                   playfile=Path(argv[1]),
+                   playlevel=argv[2])
+    elif len(argv) > 1:
+        k = KyeApp(defaults=defaults,
+                   playfile=Path(argv[1]))
     else:
         k = KyeApp(defaults=defaults)
 

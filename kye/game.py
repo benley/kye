@@ -18,6 +18,9 @@
 
 """kye.game - implements the Kye game state and behaviour."""
 
+from typing import Any, Dict, IO, List, Optional, Tuple, Type, Sequence
+
+import kye.objects
 from kye.objects import (
     BlackHole,
     Block,
@@ -34,65 +37,65 @@ from kye.objects import (
     Thinker,
     Wall,
 )
-from kye.common import xsize, ysize
+from kye.common import XSIZE, YSIZE
 
 
 class KGame:
     """This class holds the state of the game, and handles reading in levels from level set files and game mechanics."""
 
-    cell_lookup = {
-        'K': (Kye,),
-        '1': (Wall, 1),
-        '2': (Wall, 2),
-        '3': (Wall, 3),
-        '4': (Wall, 4),
-        '5': (Wall, 5),
-        '6': (Wall, 6),
-        '7': (Wall, 7),
-        '8': (Wall, 8),
-        '9': (Wall, 9),
-        'b': (Block, 0, False),
-        'B': (Block, 0, True),
-        'a': (Block, 1, False),
-        'c': (Block, -1, False),
-        'e': (Edible,),
-        '*': (Diamond,),
-        'D': (Sentry, 0, 1),
-        'U': (Sentry, 0, -1),
-        'L': (Sentry, -1, 0),
-        'R': (Sentry, 1, 0),
-        '[': (Monster, 2),
-        'E': (Monster, 0),
-        'T': (Monster, 1),
-        '~': (Monster, 3),
-        'C': (Monster, 4),
-        's': (Magnet, 0, 1),
-        'S': (Magnet, 1, 0),
-        'u': (Slider, 0, -1, False),
-        'd': (Slider, 0, 1, False),
-        'l': (Slider, -1, 0, False),
-        'r': (Slider, 1, 0, False),
-        '^': (Slider, 0, -1, True),
-        'v': (Slider, 0, 1, True),
-        '<': (Slider, -1, 0, True),
-        '>': (Slider, 1, 0, True),
-        'H': (BlackHole,),
-        '}': (Block, 0, False, 3),
-        '|': (Block, 0, False, 4),
-        '{': (Block, 0, False, 5),
-        'z': (Block, 0, False, 6),
-        'y': (Block, 0, False, 7),
-        'x': (Block, 0, False, 8),
-        'w': (Block, 0, False, 9),
-        'h': (OneWay, 0, 1),
-        'i': (OneWay, 0, -1),
-        'f': (OneWay, 1, 0),
-        'g': (OneWay, -1, 0),
-        'A': (Shooter, False),
-        'F': (Shooter, True),
+    cell_lookup: Dict[str, Tuple[Type[kye.objects.Base], Sequence[Any]]] = {
+        'K': (Kye,       ()),
+        '1': (Wall,      (1,)),
+        '2': (Wall,      (2,)),
+        '3': (Wall,      (3,)),
+        '4': (Wall,      (4,)),
+        '5': (Wall,      (5,)),
+        '6': (Wall,      (6,)),
+        '7': (Wall,      (7,)),
+        '8': (Wall,      (8,)),
+        '9': (Wall,      (9,)),
+        'b': (Block,     (0, False)),
+        'B': (Block,     (0, True)),
+        'a': (Block,     (1, False)),
+        'c': (Block,     (-1, False)),
+        'e': (Edible,    ()),
+        '*': (Diamond,   ()),
+        'D': (Sentry,    (0, 1)),
+        'U': (Sentry,    (0, -1)),
+        'L': (Sentry,    (-1, 0)),
+        'R': (Sentry,    (1, 0)),
+        '[': (Monster,   (2,)),
+        'E': (Monster,   (0,)),
+        'T': (Monster,   (1,)),
+        '~': (Monster,   (3,)),
+        'C': (Monster,   (4,)),
+        's': (Magnet,    (0, 1)),
+        'S': (Magnet,    (1, 0)),
+        'u': (Slider,    (0, -1, False)),
+        'd': (Slider,    (0, 1, False)),
+        'l': (Slider,    (-1, 0, False)),
+        'r': (Slider,    (1, 0, False)),
+        '^': (Slider,    (0, -1, True)),
+        'v': (Slider,    (0, 1, True)),
+        '<': (Slider,    (-1, 0, True)),
+        '>': (Slider,    (1, 0, True)),
+        'H': (BlackHole, ()),
+        '}': (Block,     (0, False, 3)),
+        '|': (Block,     (0, False, 4)),
+        '{': (Block,     (0, False, 5)),
+        'z': (Block,     (0, False, 6)),
+        'y': (Block,     (0, False, 7)),
+        'x': (Block,     (0, False, 8)),
+        'w': (Block,     (0, False, 9)),
+        'h': (OneWay,    (0, 1)),
+        'i': (OneWay,    (0, -1)),
+        'f': (OneWay,    (1, 0)),
+        'g': (OneWay,    (-1, 0)),
+        'A': (Shooter,   (False,)),
+        'F': (Shooter,   (True,)),
         }
 
-    def __init__(self, f, want_level, movesource, rng):
+    def __init__(self, f: IO, want_level: str, movesource, rng) -> None:
         levels = f.readline()
         if levels == "":
             raise KGameFormatError
@@ -118,25 +121,27 @@ class KGame:
         self.thislev = levelname
         self.hint = f.readline().strip()
         self.exitmsg = f.readline().strip()
-        board = []
+        board: List[Optional[kye.objects.Base]] = []
         self.invalidate = []
         self.magnet_count = []
 
-        for i in range(xsize*ysize):
+        for i in range(XSIZE*YSIZE):
             board.append(None)
             self.invalidate.append(1)
             self.magnet_count.append(0)
 
         self.board = board
-        self.loc = {}
-        self.thinkers = []
+        self.loc: Dict[kye.objects.Base, Tuple[int, int]] = {}
+        self.thinkers: List[Tuple[int, kye.objects.Base]] = []
         self.diamonds = 0
         self.thekye = None
+        self.kye: Optional[Kye]
+        # TODO: self.kye and self.thekye, wtf?
 
-        for y in range(ysize):
+        for y in range(YSIZE):
             l = f.readline()
-            for x in range(xsize):
-                edge = (x == 0 or y == 0 or x == xsize-1 or y == ysize-1)
+            for x in range(XSIZE):
+                edge = (x == 0 or y == 0 or x == XSIZE-1 or y == YSIZE-1)
                 c = l[x]
 
                 # Blank means empty cell - but override at the edge
@@ -145,14 +150,16 @@ class KGame:
                 if c == ' ':
                     continue
                 try:
-                    ctype = KGame.cell_lookup[c]
+                    (c_cls, c_args) = KGame.cell_lookup[c]
 
+                    cc: kye.objects.Base
                     # edge cells must be wall cells
-                    if ctype[0] != Wall and edge:
-                        ctype = (Wall, 5)
-
-                    # Execute constructor for this object type, and add to the grid
-                    cc = ctype[0](*ctype[1:])
+                    if c_cls != Wall and edge:
+                        cc = Wall(5)
+                    else:
+                        # Execute constructor for this object type
+                        cc = c_cls(*c_args)
+                    # Add to the grid
                     self.add_at(x, y, cc)
 
                     # Objects where location matters
@@ -182,35 +189,35 @@ class KGame:
         self.random = rng
         self.ms = movesource
 
-    def nextrand(self, n):
+    def nextrand(self, n: int) -> int:
         """Return a random number from 0..n-1 from this games random number source."""
         return self.random.randint(0, n-1)
 
-    def get_at(self, i, j):
+    def get_at(self, i: int, j: int) -> Optional[kye.objects.Base]:
         """Return the content of tile (i, j). Caller must ensure that (i, j) is inside the game board."""
-        return self.board[xsize*j + i]
+        return self.board[XSIZE*j + i]
 
-    def get_atB(self, i, j):
+    def get_atB(self, i: int, j: int) -> Optional[kye.objects.Base]:
         """Returns the content of tile (i, j), or a Wall if (i, j) is outside of the board."""
-        if i < 0 or i >= xsize or j < 0 or j >= ysize:
+        if i < 0 or i >= XSIZE or j < 0 or j >= YSIZE:
             return Wall(5)
         return self.get_at(i, j)
 
-    def get_tile(self, i, j):
+    def get_tile(self, i: int, j: int) -> str:
         """Return the image to show for the tile at (i, j)."""
         c = self.get_at(i, j)
         if (c is None):
             return "blank"
         return c.image(self.animate_frame)
 
-    def get_location(self, obj):
+    def get_location(self, obj: kye.objects.Base) -> Tuple[int, int]:
         """Return the location in the game of the given game object."""
         return self.loc[obj]
 
     def magnet_range(self, x, y, d):
         """Update the magnet effect table to allow for the addition (if d=1) or removal (if d=-1) of a magnet at (x, y)."""
-        pos = xsize*y + x
-        maxp = xsize*ysize
+        pos = XSIZE*y + x
+        maxp = XSIZE*YSIZE
         if pos >= 2:
             self.magnet_count[pos - 2] = self.magnet_count[pos - 2] + d
         if pos >= 1:
@@ -219,18 +226,18 @@ class KGame:
             self.magnet_count[pos + 1] = self.magnet_count[pos + 1] + d
         if pos + 2 < maxp:
             self.magnet_count[pos + 2] = self.magnet_count[pos + 2] + d
-        if pos >= 2*xsize:
-            self.magnet_count[pos - 2*xsize] = self.magnet_count[pos - 2*xsize] + d
-        if pos >= 1*xsize:
-            self.magnet_count[pos - 1*xsize] = self.magnet_count[pos - 1*xsize] + d
-        if pos + 2*xsize < maxp:
-            self.magnet_count[pos + 2*xsize] = self.magnet_count[pos + 2*xsize] + d
-        if pos + 1*xsize < maxp:
-            self.magnet_count[pos + 1*xsize] = self.magnet_count[pos + 1*xsize] + d
+        if pos >= 2*XSIZE:
+            self.magnet_count[pos - 2*XSIZE] = self.magnet_count[pos - 2*XSIZE] + d
+        if pos >= 1*XSIZE:
+            self.magnet_count[pos - 1*XSIZE] = self.magnet_count[pos - 1*XSIZE] + d
+        if pos + 2*XSIZE < maxp:
+            self.magnet_count[pos + 2*XSIZE] = self.magnet_count[pos + 2*XSIZE] + d
+        if pos + 1*XSIZE < maxp:
+            self.magnet_count[pos + 1*XSIZE] = self.magnet_count[pos + 1*XSIZE] + d
 
-    def add_at(self, x, y, obj):
+    def add_at(self, x: int, y: int, obj: kye.objects.Base) -> None:
         """Add the given object to the game at (x, y)."""
-        pos = xsize*y + x
+        pos = XSIZE*y + x
         self.board[pos] = obj
         self.invalidate[pos] = 1
 
@@ -248,10 +255,10 @@ class KGame:
         if isinstance(obj, Magnet):
             self.magnet_range(x, y, 1)
 
-    def remove_at(self, x, y):
+    def remove_at(self, x: int, y: int) -> None:
         """Remove the object at (x, y) from the game."""
         # Get the object and remove from the board.
-        pos = xsize*y + x
+        pos = XSIZE*y + x
         obj = self.board[pos]
         self.board[pos] = None
 
@@ -260,6 +267,8 @@ class KGame:
 
         # If this was an active object, remove from the active list.
         # And remove from the object->location map.
+        if obj is None:
+            return
         f = obj.freq()
         if f > 0:
             self.thinkers.remove((f, obj))
@@ -276,8 +285,8 @@ class KGame:
     def move_object(self, x, y, tx, ty):
         """Move the object at (x, y) to (tx, ty)."""
         # Get it and move it.
-        pos_f = xsize*y + x
-        pos_t = xsize*ty + tx
+        pos_f = XSIZE*y + x
+        pos_t = XSIZE*ty + tx
         obj = self.board[pos_f]
         self.board[pos_f] = None
         self.board[pos_t] = obj
@@ -297,7 +306,7 @@ class KGame:
     def invalidate_me(self, o):
         """Tell the game that an object's image has changed."""
         x, y = self.get_location(o)
-        self.invalidate[xsize*y + x] = 1
+        self.invalidate[XSIZE*y + x] = 1
 
     def push_object(self, x, y, dx, dy):
         """The object at (x, y) is pushed by another object in direction (dx, dy) (which should be +/-1 and not both 0) - work out if it can move and what happens to it."""
@@ -485,7 +494,7 @@ class KGame:
 
                 # If the object indicates it, request a display update for it.
                 if t.think(self, x, y):
-                    self.invalidate[x+y*xsize] = 1
+                    self.invalidate[x+y*XSIZE] = 1
 
         # Update animation counter.
         if self.tics % 3 == 0:

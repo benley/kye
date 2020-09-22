@@ -20,18 +20,19 @@
 """kye.dialogs - classes for dialog boxes used by the interface."""
 
 import os.path
+from typing import Sequence
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
+from gi.repository import Gtk, GdkPixbuf
 
-from kye.common import kyepaths, version
+from kye.common import KYEPATHS, VERSION
 
 
 class GotoDialog(Gtk.Dialog):
     """A dialog box for the player to select or type a level name to go to."""
 
-    def __init__(self, parent=None, knownlevs=()):
+    def __init__(self, parent=None, knownlevs: Sequence[str] = ()) -> None:
         Gtk.Dialog.__init__(self, title="Go to level",
                             parent=parent,
                             flags=Gtk.DialogFlags.MODAL,
@@ -56,12 +57,12 @@ class GotoDialog(Gtk.Dialog):
 
         self.cb.show()
 
-    def get_level(self):
+    def get_level(self) -> str:
         """Returns the selected level name."""
         return self.cb.get_active_text()
 
 
-def llabel(txt):
+def llabel(txt: str) -> Gtk.Label:
     """Return a centered, line-wrapped label."""
     label = Gtk.Label(txt)
     label.set_alignment(0, 0.5)
@@ -72,7 +73,11 @@ def llabel(txt):
 class KyeHelpDialog(Gtk.Dialog):
     """Help dialog box."""
 
-    def __init__(self, parent=None, after=None, message=None, getimage=None):
+    def __init__(self,
+                 parent=None,
+                 after=None,
+                 message=None,
+                 getimage=None) -> None:
         Gtk.Dialog.__init__(self, title="Help", parent=parent,
                             flags=Gtk.DialogFlags.DESTROY_WITH_PARENT)
         self.getimage = getimage
@@ -177,19 +182,19 @@ class KyeHelpDialog(Gtk.Dialog):
 
         self.show_all()
 
-    def response(self, a, rid):
+    def response(self, a, rid) -> None:
         self.destroy()
 
-    def insert_markup(self, markup: str):
-        return self.textbuffer.insert_markup(self.textbuffer.get_end_iter(),
-                                             markup, -1)
+    def insert_markup(self, markup: str) -> None:
+        self.textbuffer.insert_markup(self.textbuffer.get_end_iter(),
+                                      markup, -1)
 
-    def insert_image(self, img: str):
-        return self.textbuffer.insert_pixbuf(self.textbuffer.get_end_iter(),
-                                             self.getimage(img))
+    def insert_image(self, img: str) -> None:
+        self.textbuffer.insert_pixbuf(self.textbuffer.get_end_iter(),
+                                      self.getimage(img))
 
 
-def kyeffilter():
+def kyeffilter() -> Gtk.FileFilter:
     """Constructs a Gtk.FileFilter for .kye files"""
     kfilter = Gtk.FileFilter()
     kfilter.set_name("Kye Levels")
@@ -197,7 +202,7 @@ def kyeffilter():
     return kfilter
 
 
-def kyerfilter():
+def kyerfilter() -> Gtk.FileFilter:
     """Constructs a Gtk.FileFilter for .kyr files"""
     kfilter = Gtk.FileFilter()
     kfilter.set_name("Kye Recordings")
@@ -205,7 +210,7 @@ def kyerfilter():
     return kfilter
 
 
-def getopendialog():
+def getopendialog() -> Gtk.FileChooserDialog:
     """Build a Gtk.FileChooserDialog suitable for Kye levels"""
     filesel = Gtk.FileChooserDialog("Open Kye Levels",
                                     buttons=(Gtk.STOCK_OK,
@@ -213,13 +218,13 @@ def getopendialog():
                                              Gtk.STOCK_CANCEL,
                                              Gtk.ResponseType.REJECT))
     filesel.add_filter(kyeffilter())
-    for path in kyepaths:
-        if path[0] == "/" and os.path.exists(path):
+    for path in KYEPATHS:
+        if path.is_absolute() and os.path.exists(path):
             filesel.add_shortcut_folder(path)
     return filesel
 
 
-def KyeAboutDialog(kimg):
+def KyeAboutDialog(kimg: GdkPixbuf.Pixbuf) -> Gtk.AboutDialog:
     """Returns a Gtk.AboutDialog with all the names/details/versions for Kye entered.
 
     Used to be a subclass of AboutDialog, hence the name.
@@ -227,7 +232,7 @@ def KyeAboutDialog(kimg):
     try:
         d = Gtk.AboutDialog()
         d.set_name("Kye")
-        d.set_version(version)
+        d.set_version(VERSION)
         d.set_website("http://games.moria.org.uk/kye/pygtk")
         d.set_authors(("Colin Phipps <cph@moria.org.uk>",))
         d.set_copyright("Copyright (C) 2004-2007, 2010 Colin Phipps <cph@moria.org.uk>")
@@ -239,6 +244,6 @@ def KyeAboutDialog(kimg):
         # Old pygtk versions do not have an AboutDialog, so fall back on a MessageDialog.
         d = Gtk.MessageDialog(
             type=Gtk.MESSAGE_INFO,
-            message_format="Kye %s - by Colin Phipps <cph@moria.org.uk>" % version,
+            message_format="Kye %s - by Colin Phipps <cph@moria.org.uk>" % VERSION,
             buttons=Gtk.BUTTONS_OK)
         return d

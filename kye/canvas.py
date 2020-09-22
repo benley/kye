@@ -19,24 +19,27 @@
 
 """kye.canvas - module containing the KCanvas class, which implements the display of the game itself."""
 
+from typing import Dict, List, Optional
+
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GdkPixbuf, Gdk
 import cairo
 
-from kye.common import xsize, ysize, findfile, KyeImageDir
+from kye.common import XSIZE, YSIZE, findfile, KyeImageDir
+from kye.game import KGame
 
 
 class KCanvas(Gtk.DrawingArea):
     """A gtk DrawingArea which draws the game."""
     tilesize = 16
 
-    def __init__(self, responder, tilesize=16):
+    def __init__(self, responder, tilesize=16) -> None:
         Gtk.DrawingArea.__init__(self)
 
         # Remember the tilesize, and set the canvas size appropriately.
         KCanvas.tilesize = tilesize
-        self.set_size_request(KCanvas.tilesize*xsize, KCanvas.tilesize*ysize)
+        self.set_size_request(KCanvas.tilesize*XSIZE, KCanvas.tilesize*YSIZE)
 
         # Set GTK window flags & expose handler.
         self.set_events(Gdk.EventMask.EXPOSURE_MASK
@@ -73,14 +76,14 @@ class KCanvas(Gtk.DrawingArea):
             md.destroy()
             raise Exception("aborting, no tileset")
         self.imgdir = KyeImageDir(imgdirname)
-        self.images = {}
+        self.images: Dict[str, GdkPixbuf.Pixbuf] = {}
 
         # Set up array holding the on-screen state.
         self.showboard = []
-        for i in range(xsize * ysize):
+        for i in range(XSIZE * YSIZE):
             self.showboard.append("blank")
 
-    def game_redraw(self, game, changed_squares):
+    def game_redraw(self, game: KGame, changed_squares: List[Optional[int]]) -> None:
         """Update the displayed game from the game in memory (e.g. after a game tick has run).
 
         game  -- the game object (we call get_tile on this to get the new state.
@@ -89,18 +92,19 @@ class KCanvas(Gtk.DrawingArea):
         Note that changed_squares is updated back to false for all tiles as they are queued for redrawing.
         """
         i = -1
-        for y in range(ysize):
-            for x in range(xsize):
+        for y in range(YSIZE):
+            for x in range(XSIZE):
                 i = i + 1
                 if changed_squares[i] == 1:
                     changed_squares[i] = None
                     tile = game.get_tile(x, y)
-                    if tile != self.showboard[xsize*y+x]:
-                        self.showboard[xsize*y+x] = tile
+                    if tile != self.showboard[XSIZE*y+x]:
+                        self.showboard[XSIZE*y+x] = tile
                         self.queue_draw_area(self.tilesize*x, self.tilesize*y,
                                              self.tilesize, self.tilesize)
 
-    def get_image(self, tilename, tilesize=None) -> GdkPixbuf.Pixbuf:
+    def get_image(self, tilename: str,
+                  tilesize: Optional[int] = None) -> GdkPixbuf.Pixbuf:
         """Get a GDK PixBuf containing the rendered image for the named tile.
 
         If specified, tilesize overrides the current tile size of the canvas
@@ -139,19 +143,19 @@ class KCanvas(Gtk.DrawingArea):
                 self.images[tilename] = pb
             return pb
 
-    def settilesize(self, size):
+    def settilesize(self, size: int) -> None:
         """Sets the size for tiles; causes the canvas to resize and be redrawn."""
         KCanvas.tilesize = size
-        self.set_size_request(self.tilesize*xsize, self.tilesize*ysize)
-        self.queue_draw_area(0, 0, self.tilesize*xsize, self.tilesize*ysize)
+        self.set_size_request(self.tilesize*XSIZE, self.tilesize*YSIZE)
+        self.queue_draw_area(0, 0, self.tilesize*XSIZE, self.tilesize*YSIZE)
 
         # And must flush the tile cache; need to redraw from the image data at
         # the new tile size.
         self.images = {}
 
-    def drawcell(self, cairo_ctx: cairo.Context, i, j):
+    def drawcell(self, cairo_ctx: cairo.Context, i: int, j: int) -> None:
         """Draw the cell at i, j, using the supplied graphics context."""
-        tile = self.showboard[i + j * xsize]
+        tile = self.showboard[i + j * XSIZE]
 
         i = i * self.tilesize
         j = j * self.tilesize
@@ -165,7 +169,7 @@ class KCanvas(Gtk.DrawingArea):
                                         self.get_image(tile), i, j)
             cairo_ctx.paint()
 
-    def draw_event(self, widget, cairo_ctx) -> None:
+    def draw_event(self, widget, cairo_ctx: cairo.Context) -> None:
         """draw handler; redraws the invalidated part of the display."""
         x, y = 0, 0
         width = widget.get_allocated_width()
@@ -173,10 +177,10 @@ class KCanvas(Gtk.DrawingArea):
 
         tilesize = self.tilesize
         try:
-            for i in range(xsize):
+            for i in range(XSIZE):
                 if (i+1)*tilesize <= x or i*tilesize > x+width:
                     continue
-                for j in range(ysize):
+                for j in range(YSIZE):
                     if (j+1)*tilesize <= y or j*tilesize > y+height:
                         continue
                     self.drawcell(cairo_ctx, i, j)
@@ -189,21 +193,21 @@ class KCanvas(Gtk.DrawingArea):
             md.destroy()
             Gtk.main_quit()
 
-    def button_press_event(self, widget, event):
+    def button_press_event(self, widget, event) -> None:
         """Handler for mouse button presses; just translates to game coords and passes on."""
         window, x, y, mods = event.window.get_pointer()
         x = x // KCanvas.tilesize
         y = y // KCanvas.tilesize
         self.bpress(event.button, x, y)
 
-    def button_release_event(self, widget, event):
+    def button_release_event(self, widget, event) -> None:
         """Handler for mouse button release; just translates to game coords and passes on."""
         window, x, y, mods = event.window.get_pointer()
         x = x // KCanvas.tilesize
         y = y // KCanvas.tilesize
         self.brelease(event.button, x, y)
 
-    def mouse_motion_event(self, widget, event):
+    def mouse_motion_event(self, widget, event) -> None:
         """Handler for mouse movement; just translates to game coords and passes on."""
         window, x, y, mods = event.window.get_pointer()
         x = x // KCanvas.tilesize

@@ -8,7 +8,7 @@ share.append("images.tar.gz")
 
 setup(
     name="kye",
-    version="1.0",
+    version="2.0",
     description="Clone of Kye puzzle game",
     url="http://games.moria.org.uk/kye/pygtk",
     author="Colin Phipps",

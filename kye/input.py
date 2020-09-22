@@ -26,23 +26,29 @@ from gi.repository.Gdk import keyval_from_name
 import pickle
 from gzip import GzipFile
 import os.path
+from pathlib import Path
+from random import Random
+from typing import Any, List, Optional, Tuple, Union
 
-from kye.common import version
+from kye.common import VERSION
+
+
+Move = Tuple[str, int, int]
 
 
 class KMoveInput:
     """Gets movement input, and converts it into game actions."""
 
-    def __init__(self):
-        self.__recordto = None
+    def __init__(self) -> None:
+        self.__recordto: Optional[GzipFile] = None
         self.clear()
 
-    def clear(self):
+    def clear(self) -> None:
         """Clears the current state of mouse buttons/keyboard keys held."""
-        self.heldkeys = []
-        self.keyqueue = []
-        self.mousemoving = None
-        self.currentmouse = None
+        self.heldkeys: List[Move] = []
+        self.keyqueue: List[Move] = []
+        self.mousemoving = False
+        self.currentmouse: Optional[Tuple[str, int, int]] = None
 
     keymap = {
         keyval_from_name('Left'): ("rel", -1, 0),
@@ -67,7 +73,7 @@ class KMoveInput:
         keyval_from_name('KP_Page_Up'): ("rel", 1, -1),
     }
 
-    def key_press_event(self, widget, event):
+    def key_press_event(self, widget, event) -> None:
         """Handle a keypress event."""
         try:
             pressedkey = KMoveInput.keymap[event.keyval]
@@ -88,7 +94,7 @@ class KMoveInput:
         except KeyError:
             return
 
-    def key_release_event(self, widget, event):
+    def key_release_event(self, widget, event) -> None:
         """Handle a key release event."""
         try:
             self.heldkeys.remove(KMoveInput.keymap[event.keyval])
@@ -97,21 +103,21 @@ class KMoveInput:
         except ValueError:
             return
 
-    def mouse_motion_event(self, x, y):
+    def mouse_motion_event(self, x: int, y: int) -> None:
         """Update mouse position after a mouse move."""
         self.currentmouse = ("abs", x, y)
 
-    def button_press_event(self, button, x, y):
+    def button_press_event(self, button: int, x: int, y: int) -> None:
         """Mouse button press event."""
         if button == 1:
             self.mousemoving = True
 
-    def button_release_event(self, button, x, y):
+    def button_release_event(self, button: int, x: int, y: int) -> None:
         """Mouse button release event."""
         if button == 1:
             self.mousemoving = False
 
-    def __get_move(self):
+    def __get_move(self) -> Optional[Move]:
         """Gets the move from the current keys/mouse state."""
         # If there are key presses in the queue, use them first
         if len(self.keyqueue) > 0:
@@ -132,7 +138,7 @@ class KMoveInput:
         # No action
         return None
 
-    def end_record(self):
+    def end_record(self) -> None:
         """End any previous recording."""
         if self.__recordto is not None:
             try:
@@ -142,23 +148,26 @@ class KMoveInput:
 
         self.__recordto = None
 
-    def record_to(self, recfile, playfile, playlevel, rng):
+    def record_to(self, recfile: Path,
+                  playfile: Path,
+                  playlevel: str,
+                  rng: Random) -> None:
         """Set this input to be recorded to the supplied stream."""
         # Open the stream
         stream = GzipFile(recfile, "w")
         self.__recordto = stream
 
         # Write header
-        stream.write(bytes("Kye %s recording:\n" % version, "UTF-8"))
+        stream.write(bytes("Kye %s recording:\n" % VERSION, "UTF-8"))
         stream.write(bytes(os.path.basename(playfile) + "\n", "UTF-8"))
         stream.write(bytes(playlevel + "\n", "UTF-8"))
         pickle.dump(rng.getstate(), stream)
 
-    def is_recording(self):
+    def is_recording(self) -> bool:
         """Return true iff we are recording at the moment."""
         return self.__recordto is not None
 
-    def get_move(self):
+    def get_move(self) -> Optional[Move]:
         """Gets the move from the current keys/mouse state (and records the move if required)."""
         m = self.__get_move()
         if self.__recordto is not None:
@@ -177,7 +186,7 @@ class KDemoFormatError(KDemoError):
 
 
 class KDemoFileMismatch(KDemoError):
-    def __init__(self, filename):
+    def __init__(self, filename: Union[Path, str]) -> None:
         KDemoError.__init__(self)
         self.filename = filename
 
@@ -185,7 +194,7 @@ class KDemoFileMismatch(KDemoError):
 class KyeRecordedInput:
     """An input source which is a recording in a file of a previous game."""
 
-    def __init__(self, playfile, playback):
+    def __init__(self, playfile: Path, playback: Path) -> None:
         instream = GzipFile(playback)
         header = instream.readline().rstrip().decode()
         if not (header.startswith("Kye ") and header.endswith(" recording:")):
@@ -198,21 +207,21 @@ class KyeRecordedInput:
 
         # Okay
         self.__level = instream.readline().rstrip().decode()
-        self.__rng = pickle.load(instream)
+        self.__rng: Tuple[Any, ...] = pickle.load(instream)
         self.__s: GzipFile = instream
 
-    def get_level(self):
+    def get_level(self) -> str:
         """Return the level name for this recording."""
         return self.__level
 
-    def set_rng(self, rng):
+    def set_rng(self, rng: Random) -> None:
         """Set the supplied RNG to the state needed for this recording."""
         rng.setstate(self.__rng)
 
-    def get_move(self):
+    def get_move(self) -> Optional[Move]:
         """Get a move from the recording."""
         line = self.__s.readline().rstrip().decode()
         if len(line) == 0:
             return None
         s = line.split("\t")
-        return [s[0], int(s[1]), int(s[2])]
+        return (s[0], int(s[1]), int(s[2]))

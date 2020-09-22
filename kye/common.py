@@ -19,25 +19,29 @@
 """kye.common - Common utility functions and classes.
 Exposed constants:
 
-xsize, ysize - size of the game playing area.
+XSIZE, YSIZE - size of the game playing area.
 
-version - version number of this release of the game.
+VERSION - version number of this release of the game.
 
-kyepaths - the list of paths that we will try for opening levels given on the
+KYEPATHS - the list of paths that we will try for opening levels given on the
            command line, and for searching for tilesets."""
 
-import tarfile
 import os.path
+from pathlib import Path
+import tarfile
+from typing import Dict, IO, Sequence, Union
 
-xsize = 30
-ysize = 20
+XSIZE = 30
+YSIZE = 20
 
-version = "1.0"
+VERSION = "2.0"
 
-kyepaths = ("levels", "/usr/local/share/kye", "/usr/share/kye")
+KYEPATHS = [Path(x) for x in ["levels",
+                              "/usr/local/share/kye",
+                              "/usr/share/kye"]]
 
 
-def tryopen(filename, paths):
+def tryopen(filename: Path, paths: Sequence[Path]) -> IO:
     """Returns a reading file handle for filename, searching through directories in the supplied paths."""
     try:
         f = open(filename)
@@ -45,34 +49,37 @@ def tryopen(filename, paths):
     except IOError:
         for path in paths:
             try:
-                f = open(os.path.join(path, filename))
-                return f
+                return open(os.path.join(path, filename))
             except IOError:
                 pass
     raise IOError("Unable to find file %s" % filename)
 
 
-def findfile(filename):
-    """Looks for filename, searching a built-in list of directories; returns the path where it finds the file."""
+def findfile(filename: Union[Path, str]) -> Path:
+    """Looks for filename, searching a built-in list of directories.
+    Returns the path where it finds the file.
+    """
     if os.path.exists(filename):
-        return filename
-    for path in kyepaths:
+        return Path(filename)
+    for path in KYEPATHS:
         x = os.path.join(path, filename)
         if os.path.exists(x):
-            return x
+            return Path(x)
+    raise FileNotFoundError
 
 
 class KyeImageDir:
     """Class for retrieving images from a tileset tar.gz."""
 
-    def __init__(self, filename):
-        self.tiles = {}
-        tar = tarfile.open(filename, 'r|gz')
-        for tarinfo in tar:
-            (tilename, ext) = tarinfo.name.split('.', 2)
-            self.tiles[tilename] = tar.extractfile(tarinfo).read()
-        tar.close()
+    def __init__(self, filename: Path) -> None:
+        self.tiles: Dict[str, bytes] = {}
+        with tarfile.open(filename, 'r|gz') as tar:
+            for tarinfo in tar:
+                (tilename, ext) = tarinfo.name.split('.', 2)
+                fh = tar.extractfile(tarinfo)
+                assert fh is not None  # for mypy
+                self.tiles[tilename] = fh.read()
 
-    def get_tile(self, tilename):
+    def get_tile(self, tilename: str) -> bytes:
         """Returns the image file data for the requested tile."""
         return self.tiles[tilename]

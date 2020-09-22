@@ -19,7 +19,7 @@
 """Functions and classes for the level editor."""
 
 from copy import deepcopy
-from kye.common import xsize, ysize
+from kye.common import XSIZE, YSIZE
 
 
 def freq(s):
@@ -117,16 +117,16 @@ class KLevelEdit:
 
             # read in the board
             board = []
-            for y in range(ysize):
+            for y in range(YSIZE):
                 l = f.readline()
-                for x in range(xsize):
+                for x in range(XSIZE):
                     c = l[x]
 
                     # Edge tiles must be walls - as in original Kye, force this.
                     if c not in KLevelEdit.wall and (x == 0 or
                                                      y == 0 or
-                                                     x == xsize-1 or
-                                                     y == ysize-1):
+                                                     x == XSIZE-1 or
+                                                     y == YSIZE-1):
                         c = '5'
 
                     board.append(c)
@@ -166,7 +166,7 @@ class KLevelEdit:
     def setlevel(self, n):
         """Set the level currently being edited to number n."""
         self.curlevel = n
-        self.__disp.game_redraw(self, [1]*(xsize*ysize))
+        self.__disp.game_redraw(self, [1]*(XSIZE*YSIZE))
 
     def updatelevellist(self):
         """This pushes the useful level data in this level set to the frame class."""
@@ -301,13 +301,13 @@ class KLevelEdit:
     # Get and set tile methods, plus autorounding etc
     def get_tile(self, i, j):
         """Look up the content of a tile in the currently-edited level"""
-        return KLevelEdit.cell_lookup[self.levels[self.curlevel]['board'][xsize*j + i]][0]
+        return KLevelEdit.cell_lookup[self.levels[self.curlevel]['board'][XSIZE*j + i]][0]
 
     def wall_at(self, x, y):
         """Returns 1 if the nominated tile in the currently edited level is a wall (or is out of bounds), 0 otherwise"""
-        if x < 0 or y < 0 or y >= ysize or x >= xsize:
+        if x < 0 or y < 0 or y >= YSIZE or x >= XSIZE:
             return 1
-        if self.levels[self.curlevel]['board'][xsize*y + x] in KLevelEdit.wall:
+        if self.levels[self.curlevel]['board'][XSIZE*y + x] in KLevelEdit.wall:
             return 1
         else:
             return 0
@@ -329,17 +329,17 @@ class KLevelEdit:
         self.autoround_cell(x, y)
         if x > 0:
             self.autoround_cell(x-1, y)
-        if x < xsize-1:
+        if x < XSIZE-1:
             self.autoround_cell(x+1, y)
         if y > 0:
             self.autoround_cell(x, y-1)
-        if y < ysize-1:
+        if y < YSIZE-1:
             self.autoround_cell(x, y+1)
 
     def set_at(self, i, j, t):
         """Sets a given tile, plus updated neighbouring cells wall rounding, plus updates modification count and may checkpoint if needed"""
         self.newmod()
-        if i == 0 or j == 0 or i == xsize-1 or j == ysize-1:
+        if i == 0 or j == 0 or i == XSIZE-1 or j == YSIZE-1:
             if t != '5':
                 return
         try:
@@ -351,11 +351,11 @@ class KLevelEdit:
 
     def set_at_simple(self, i, j, t):
         """Edits a single cell, and redraws it"""
-        if i < 0 or j < 0 or i >= xsize or j >= ysize:
+        if i < 0 or j < 0 or i >= XSIZE or j >= YSIZE:
             raise IndexError
-        self.levels[self.curlevel]['board'][xsize*j + i] = t
-        w = [0]*(xsize*ysize)
-        w[xsize*j + i] = 1
+        self.levels[self.curlevel]['board'][XSIZE*j + i] = t
+        w = [0]*(XSIZE*YSIZE)
+        w[XSIZE*j + i] = 1
         self.__disp.game_redraw(self, w)
 
     def check(self):
@@ -385,8 +385,8 @@ class KLevelEdit:
                           (l['name'], l['hint'], l['exitmsg']),
                           "utf-8"))
             i = 0
-            for y in range(ysize):
-                for x in range(xsize):
+            for y in range(YSIZE):
+                for x in range(XSIZE):
                     f.write(bytes(l['board'][i], "utf-8"))
                     i = i + 1
                 f.write(b"\r\n")

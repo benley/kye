@@ -18,14 +18,14 @@
 #
 """kye.editor - classes and data for the level editor."""
 
+import os
+import tempfile
+
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
-from tempfile import mkstemp
-from os import unlink, fdopen
-
-from kye.common import kyepaths, tryopen
+from kye.common import KYEPATHS, tryopen
 from kye.canvas import KCanvas
 from kye.palette import KPalette
 from kye.dialogs import (
@@ -332,7 +332,7 @@ class KEditor(Gtk.Window):
     def do_open(self, fname, template=0):
         """Open a new level set to edit."""
         try:
-            gamefile = tryopen(fname, kyepaths)
+            gamefile = tryopen(fname, KYEPATHS)
             self.g = KLevelEdit(gamefile,
                                 disp=self.canvas,
                                 newleveltemplate=self.__newlevel,
@@ -464,7 +464,7 @@ class KEditor(Gtk.Window):
         """Return an empty level, read from template.kye, as a start for designing a new level."""
         fname = "template.kye"
         try:
-            gamefile = tryopen(fname, kyepaths)
+            gamefile = tryopen(fname, KYEPATHS)
             g = KLevelEdit(gamefile, disp=self.canvas, newleveltemplate=None)
         except (IOError, OSError) as e:
             self.error_message("%s" % e)
@@ -476,8 +476,8 @@ class KEditor(Gtk.Window):
         self.__newlevel = self.get_template_board()
 
         # Create temp file; we save every level here immediately after loading it.
-        (tf, tfname) = mkstemp(suffix='.kye')
-        self.__tf = fdopen(tf, 'wb')
+        (tf, tfname) = tempfile.mkstemp(suffix='.kye')
+        self.__tf = os.fdopen(tf, 'wb')
 
         # Load specified level, or the template
         if len(argv) > 1:
@@ -495,4 +495,4 @@ class KEditor(Gtk.Window):
 
         # If out without errors, remove the backup copy
         self.__tf.close()
-        unlink(tfname)
+        os.unlink(tfname)

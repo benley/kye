@@ -156,7 +156,7 @@ class KFrame(Gtk.Window):
 
         # Status bar
         self.stbar = StatusBar(self.canvas.get_image("kye", tilesize=16))
-        self.stbar.set_size_request(tilesize * kye.common.xsize, -1)
+        self.stbar.set_size_request(tilesize * kye.common.XSIZE, -1)
         self.main_vbox.pack_start(self.stbar, expand=True, fill=True,
                                   padding=0)
         self.stbar.show()
@@ -300,7 +300,7 @@ class KFrame(Gtk.Window):
         if not self.ignore_sizing:
             ts = ra.get_current_value()
             self.canvas.settilesize(ts)
-            self.stbar.set_size_request(ts * kye.common.xsize, -1)
+            self.stbar.set_size_request(ts * kye.common.XSIZE, -1)
             self.settings["Size"] = ts
 
     def endleveldialog(self, nextlevel, endmsg):
