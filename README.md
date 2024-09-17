@@ -1,3 +1,5 @@
+[Colin Phipps]: mailto:cph@moria.org.uk
+
 Kye 1.0
 =========
 
@@ -6,18 +8,24 @@ a puzzle game, which is a little like the old falling-rocks puzzle games, and
 perhaps also inspired a little by Sokoban. But Kye has more variety of objects,
 and so is capable of posing quite complex puzzles.
 
-This clone is written by [Colin Phipps](cph@moria.org.uk) in Python and uses
-Gtk 3. So it will run on modern Linux systems easily enough, and indeed should
-work on any system with working Python and pygobject. It works on Windows as
-well, for instance.
+This clone is written by [Colin Phipps] in Python and uses Gtk 3. So it will run
+on modern Linux systems easily enough, and indeed should work on any system with
+working Python and pygobject. It works on Windows as well, for instance.
 
 ![screenshot](screenshot.png)
 
 Linux/Unix Installation
 -----------------------
 
+- With Nix (recommended):
+
+  `nix-build`, then run `result/bin/Kye`.
+
+  To install to your user profile, `nix-env -f. -i`
+
 - For Debian or Ubuntu:
   `apt-get install python-gtk2 librsvg2-common`
+
 - For FreeBSD:
   `portinstall py24-gtk librsvg2`
 
@@ -104,7 +112,7 @@ images by default.)
 Copyright & Charityware
 -----------------------
 
-This version of Kye is Copyright (C) 2004-2010 [Colin Phipps](cph@moria.org.uk).
+This version of Kye is Copyright (C) 2004-2010 [Colin Phipps](mailto:cph@moria.org.uk).
 It is made available under the GNU General Public License (see the file [COPYING](./COPYING)
 for details). Furthermore, as the game idea comes from the original Kye game,
 to maintain the spirit of the original distribution rules, Kye is charityware -
@@ -116,8 +124,8 @@ as well).
 Authors & Acknowlegements
 -------------------------
 
-Python Kye and the supplied levels & graphics are written by [Colin Phipps](cph@moria.org.uk).
-Python Kye is Copyright (c) 2004, 2005, 2006, 2007, 2010 by [Colin Phipps](cph@moria.org.uk);
+Python Kye and the supplied levels & graphics are written by [Colin Phipps].
+Python Kye is Copyright (c) 2004, 2005, 2006, 2007, 2010 by [Colin Phipps];
 it is distributed under the GNU General Public License v2, see COPYING for details.
 
 It is modelled on the original Kye for Windows by Colin Garbutt.
