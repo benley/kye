@@ -1,4 +1,3 @@
-
 { lib, buildPythonApplication, pygobject3, gtk3
 , wrapGAppsHook, gobject-introspection
 , pango, pycairo, pyxdg }:
@@ -8,9 +7,6 @@ buildPythonApplication rec {
   version = "1.0";
 
   src = lib.cleanSource ./.;
-
-  # https://github.com/NixOS/nixpkgs/issues/56943
-  strictDeps = false;
 
   nativeBuildInputs = [
     wrapGAppsHook

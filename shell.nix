@@ -3,9 +3,10 @@
 with rec {
   pkgs = nixpkgs.pkgs;
 
-  pythonEnv = pkgs.python38.withPackages (ps: [
+  pythonEnv = pkgs.python3.withPackages (ps: [
     ps.python-language-server
     ps.pyls-mypy
+    ps.pyls-isort
     ps.flake8
   ]);
 };
