@@ -3,7 +3,7 @@
 , pango, pycairo, pyxdg }:
 
 buildPythonApplication rec {
-  pname = "kye";
+  pname = "Kye";
   version = "1.0";
 
   src = lib.cleanSource ./.;

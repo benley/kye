@@ -1,21 +1,10 @@
-{ nixpkgs ? import <nixpkgs> {} }:
-
-with rec {
-  pkgs = nixpkgs.pkgs;
-
-  pythonEnv = pkgs.python3.withPackages (ps: [
-    ps.python-language-server
-    ps.pyls-mypy
-    ps.pyls-isort
-    ps.flake8
-  ]);
-};
-
-pkgs.mkShell {
-  buildInputs = [
-    pythonEnv
-  ];
-  inputsFrom = [
-    (import ./default.nix { inherit nixpkgs; })
-  ];
-}
+(import
+  (
+    let lock = builtins.fromJSON (builtins.readFile ./flake.lock); in
+    fetchTarball {
+      url = lock.nodes.flake-compat.locked.url or "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+      sha256 = lock.nodes.flake-compat.locked.narHash;
+    }
+  )
+  { src = ./.; }
+).shellNix

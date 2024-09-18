@@ -19,9 +19,12 @@ Linux/Unix Installation
 
 - With Nix (recommended):
 
-  `nix-build`, then run `result/bin/Kye`.
+  Make sure you have [Nix flakes](https://nixos.wiki/wiki/Flakes) enabled.
 
-  To install to your user profile, `nix-env -f. -i`
+  To run the game, simply run:
+  ```
+  nix run
+  ```
 
 - For Debian or Ubuntu:
   `apt-get install python-gtk2 librsvg2-common`

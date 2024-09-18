@@ -2,3 +2,4 @@ result
 .idea/
 *.egg-info/
 __pycache__/
+.direnv/
