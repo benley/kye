@@ -18,12 +18,7 @@
 
         devShells.default = pkgs.mkShell {
           buildInputs = [
-            (pkgs.python3.withPackages (ps: [
-              ps.python-lsp-server
-              ps.pylsp-mypy
-              ps.pyls-isort
-              ps.flake8
-            ]))
+            pkgs.pyright
           ];
           inputsFrom = [self.packages.${system}.kye];
         };
