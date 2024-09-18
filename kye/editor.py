@@ -19,7 +19,9 @@
 """kye.editor - classes and data for the level editor."""
 
 import os
+from pathlib import Path
 import tempfile
+from typing import IO, Optional
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -74,14 +76,14 @@ ui_string = """<ui>
 class KEditor(Gtk.Window):
     """Class implementing the level editor GUI."""
 
-    def delete_event(self, widget, event, data=None):
+    def delete_event(self, widget, event, data=None) -> bool:
         """Handle the user closing the editor window."""
         # If you return FALSE in the "delete_event" signal handler,
         # GTK will emit the "destroy" signal. Returning TRUE means
         # you don't want the window to be destroyed.
         # This is useful for popping up 'are you sure you want to quit?'
         # type dialogs.
-        if self.g.is_modified():
+        if self.g is not None and self.g.is_modified():
             md = Gtk.MessageDialog(self,
                                    type=Gtk.MessageType.QUESTION,
                                    buttons=Gtk.ButtonsType.YES_NO,
@@ -94,14 +96,14 @@ class KEditor(Gtk.Window):
         return False
 
     # Another callback
-    def destroy(self, widget, data=None):
+    def destroy(self, widget, data=None) -> None:
         """Handle a sudden exit."""
-        if not self.__lose_ok and self.g.is_modified():
+        if not self.__lose_ok and self.g is not None and self.g.is_modified():
             # TODO: this location isn't ideal or portable
-            self.dosave("/var/tmp/abort.kye")
+            self.dosave(Path("/var/tmp/abort.kye"))
         Gtk.main_quit()
 
-    def build_ui(self):
+    def build_ui(self) -> None:
         """Construct UIManager and ActionGroup with bindings to functions here to handle menu actions"""
         action_group = Gtk.ActionGroup('WindowActions')
 
@@ -144,7 +146,7 @@ class KEditor(Gtk.Window):
         self.ui.add_ui_from_string(ui_string)
         self.add_accel_group(self.ui.get_accel_group())
 
-    def __init__(self):
+    def __init__(self) -> None:
         # create a new window
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
 
@@ -212,24 +214,26 @@ class KEditor(Gtk.Window):
 
         # More internal state setup
         self.__lose_ok = False
-        self.__fn = None
-        self.g = None
+        self.__fn: Optional[Path] = None
+        self.g: Optional[KLevelEdit] = None
         self.__newlevel = None
-        self.__tf = None
+        self.__tf: Optional[IO] = None
 
     # UI maintenance - dynamic menus and changing menu item sensitivity
 
-    def setfname(self, filename):
-        """Set filename for the currently edited file - used for Save, and in the menu bar"""
+    def setfname(self, filename: Path) -> None:
+        """Set filename for the currently edited file.
+        Used for Save, and in the menu bar.
+        """
         self.__fn = filename
         self.set_menuitem_sensitive("/KyeEditMenuBar/FileMenu/Save", True)
         self.set_title("Kye Level Editor - %s" % filename)
 
-    def set_menuitem_sensitive(self, menu_item, is_sensitive):
+    def set_menuitem_sensitive(self, menu_item, is_sensitive: bool) -> None:
         """Simple wrapper to set sensitivity of a menu item by path."""
         self.ui.get_widget(menu_item).set_sensitive(is_sensitive)
 
-    def hintmenuitems(self, **h):
+    def hintmenuitems(self, **h) -> None:
         """Callback from the editing code, which sets the sensitivity of certain menu items.
 
         Call with:
@@ -241,7 +245,7 @@ class KEditor(Gtk.Window):
         if 'undo' in h:
             self.set_menuitem_sensitive('/KyeEditMenuBar/EditMenu/Undo', h['undo'])
 
-    def setlevels(self, levels, cur):
+    def setlevels(self, levels, cur) -> None:
         """Sets the list of levels in the menu."""
         # Remove any existing level list
         if self.levels_ui_mid is not None:
@@ -265,36 +269,41 @@ class KEditor(Gtk.Window):
 
     # Menu item handling (except file actions & dialogs)
 
-    def levelselect(self, menu_item, u):
+    def levelselect(self, menu_item, u) -> None:
         """Change selected level"""
+        assert self.g is not None
         self.g.setlevel(n=menu_item.get_current_value())
 
-    def undo(self, a):
+    def undo(self, a) -> None:
         """Undo handler"""
+        assert self.g is not None
         try:
             self.g.undo()
         except IndexError:
             self.error_message("No undo available")
 
-    def newlevel(self, a):
+    def newlevel(self, a) -> None:
         """New Level handler."""
+        assert self.g is not None
         self.g.newlevel()
 
-    def delete_level(self, a):
+    def delete_level(self, a) -> None:
         """Delete Level handler."""
+        assert self.g is not None
         self.g.delete_level()
 
-    def autoroundclick(self, a):
+    def autoroundclick(self, a) -> None:
         """Handle clicking on the auto-round menu checkbox"""
-        self.g.set_autoround(s=a.get_active())
+        assert self.g is not None
+        self.g.set_autoround(a.get_active())
 
-    def settilesize(self, ra, u):
+    def settilesize(self, ra, u) -> None:
         """Respond to view menu selections"""
         a = ra.get_current_value()
         self.canvas.settilesize(a)
         self.palette.settilesize(a)
 
-    def quit(self, a):
+    def quit(self, a) -> None:
         """Handler for Quit menu item."""
         if self.delete_event(None, a):
             return
@@ -302,8 +311,9 @@ class KEditor(Gtk.Window):
 
     # Now file actions
 
-    def dochecks(self):
+    def dochecks(self) -> bool:
         """Returns True unless there are errors and the user cancels the save."""
+        assert self.g is not None
         errs = self.g.check()
         if len(errs) == 0:
             return True
@@ -318,7 +328,7 @@ class KEditor(Gtk.Window):
         md.destroy()
         return response == Gtk.ResponseType.OK
 
-    def opendialog(self, a):
+    def opendialog(self, a) -> None:
         """Prompt for a .kye file to open, and then pass to opencall"""
         filesel = getopendialog()
         response = filesel.run()
@@ -329,7 +339,7 @@ class KEditor(Gtk.Window):
         else:
             filesel.destroy()
 
-    def do_open(self, fname, template=0):
+    def do_open(self, fname: Path, template=0) -> bool:
         """Open a new level set to edit."""
         try:
             gamefile = tryopen(fname, KYEPATHS)
@@ -344,15 +354,17 @@ class KEditor(Gtk.Window):
         except IOError:
             self.error_message(message="Failed to read %s" % fname)
             return False
+        assert self.__tf is not None  # for mypy
         try:
             self.__tf.seek(0)
             self.__tf.truncate()
             self.g.saveto(self.__tf)
         except IOError:
-            self.error_message(message="Failed to write backup copy %s" % self.__tf.name)
+            self.error_message(message="Failed to write backup copy %s" %
+                               self.__tf.name)
         return True
 
-    def menusaveas(self, a):
+    def menusaveas(self, a) -> None:
         """Ask where to save and then save the levels there"""
         if not self.dochecks():
             return
@@ -376,7 +388,7 @@ class KEditor(Gtk.Window):
         else:
             filesel.destroy()
 
-    def menusave(self, a):
+    def menusave(self, a) -> None:
         """Save from the menu - check we do know the filename, and do checks, and finally pass through to the actual save function"""
         if self.__fn is None:
             # Should be impossible, menu item ought to be deselected
@@ -385,8 +397,9 @@ class KEditor(Gtk.Window):
             if self.dochecks():
                 self.dosave(self.__fn)
 
-    def dosave(self, filename):
+    def dosave(self, filename: Path) -> bool:
         """Do an actual save to filename."""
+        assert self.g is not None
         try:
             f = open(filename, 'wb')
             self.g.saveto(f)
@@ -399,12 +412,12 @@ class KEditor(Gtk.Window):
 
     # Finally, other menu items leading to dialogs
 
-    def helpdialog(self, a):
+    def helpdialog(self, a) -> None:
         """Help handler."""
         hd = KyeHelpDialog(getimage=self.canvas.get_image, parent=self)
         hd.show()
 
-    def textdialog(self, a):
+    def textdialog(self, a) -> None:
         """Edit Level Text handler."""
         # Create dialog.
         lt_dialog = Gtk.Dialog(title='Set level text',
@@ -445,13 +458,13 @@ class KEditor(Gtk.Window):
             self.g.set_messages(**h)
         lt_dialog.destroy()
 
-    def aboutdialog(self, a):
+    def aboutdialog(self, a) -> None:
         """About handler."""
         ad = KyeAboutDialog(kimg=self.canvas.get_image("kye"))
         ad.run()
         ad.destroy()
 
-    def error_message(self, message):
+    def error_message(self, message: str) -> None:
         """Print error message dialog."""
         md = Gtk.MessageDialog(parent=self,
                                type=Gtk.MessageType.ERROR,
@@ -471,7 +484,7 @@ class KEditor(Gtk.Window):
             raise
         return g.levels[0]
 
-    def main(self, *argv):
+    def main(self, argv: list[str]) -> None:
         """Main program for the editor - loads the first file and runs the editor GUI."""
         self.__newlevel = self.get_template_board()
 
@@ -487,12 +500,13 @@ class KEditor(Gtk.Window):
             playfile = "template.kye"
             template = 1
 
-        self.do_open(playfile, template=template)
+        self.do_open(Path(playfile), template=template)
 
         # All PyGTK applications must have a Gtk.main(). Control ends here
         # and waits for an event to occur (like a key press or mouse event).
         Gtk.main()
 
         # If out without errors, remove the backup copy
+        assert self.__tf is not None  # for mypy
         self.__tf.close()
         os.unlink(tfname)

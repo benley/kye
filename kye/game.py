@@ -309,7 +309,13 @@ class KGame:
         self.invalidate[XSIZE*y + x] = 1
 
     def push_object(self, x, y, dx, dy):
-        """The object at (x, y) is pushed by another object in direction (dx, dy) (which should be +/-1 and not both 0) - work out if it can move and what happens to it."""
+        """Push object at (x,y) in direction (dx, dy).
+
+        The object at (x, y) is pushed by another object in direction (dx, dy)
+        (which should be +/-1 and not both 0) - work out if it can move and what
+        happens to it.
+        """
+
         # Get the object, and the square that it would be pushed to.
         tx, ty = x+dx, y+dy
         obj = self.get_at(x, y)
@@ -375,9 +381,9 @@ class KGame:
                 if xt is not None and yt is not None:
                     return
 
-# But, if this is an absolute move, we could still move into the other square
-# beside the diagonal if only one is blocking. Change the relative move that we
-# are attempting accordingly.
+                # But, if this is an absolute move, we could still move into the
+                # other square beside the diagonal if only one is blocking.
+                # Change the relative move that we are attempting accordingly.
                 if xt is not None:
                     dx = 0
                 if yt is not None:
@@ -501,9 +507,9 @@ class KGame:
             self.animate_frame = self.animate_frame + 1
 
 
-class KyeGameRuntimeError:
+class KyeGameRuntimeError(RuntimeError):
     pass
 
 
-class KGameFormatError(Exception):
+class KGameFormatError(RuntimeError):
     pass
