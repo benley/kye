@@ -13,7 +13,7 @@ setup(
     url="http://games.moria.org.uk/kye/pygtk",
     author="Colin Phipps",
     author_email="cph@moria.org.uk",
-    scripts=["Kye", "Kye-edit"],
+    scripts=["Kye.py", "Kye-edit"],
     packages=["kye"],
     data_files=[
         ("share/kye", share),
