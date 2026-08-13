@@ -34,7 +34,40 @@ Linux/Unix Installation
 
 To install Kye, run `./setup.py install`; Kye should then be in your path (on
 Debian-like system, you may have to install python2.4-dev for this to work).
-Or you can just run it from the extracted tarball, with `./Kye`.
+Or you can just run it from the extracted tarball, with `./Kye.py`.
+
+macOS Installation
+------------------
+
+- With Nix (recommended):
+
+  Make sure you have [Nix flakes](https://nixos.wiki/wiki/Flakes) enabled, then
+  from the extracted source directory run:
+  ```
+  nix run
+  ```
+
+- With Homebrew:
+
+  Install [Homebrew](https://brew.sh) if you do not already have it, then install
+  GTK 3, PyGObject and their supporting libraries:
+  ```
+  brew install python gtk+3 pygobject3 py3cairo adwaita-icon-theme librsvg
+  ```
+
+  Kye also needs `pyxdg`, which is not packaged in Homebrew, so install it with pip:
+  ```
+  pip3 install pyxdg
+  ```
+
+  Then run Kye directly from the extracted source directory:
+  ```
+  ./Kye.py
+  ```
+
+  If you would rather install it onto your `PATH`, run `./setup.py install`
+  instead; this installs into your Homebrew Python's site-packages, so use
+  `pip3 install --user .` if you would prefer a user-local install instead.
 
 Windows Installation
 --------------------
