@@ -13,6 +13,11 @@
         pkgs = nixpkgs.legacyPackages.${system};
       in
       {
+        apps.default = self.apps.${system}.kye;
+        apps.kye = {
+          type = "app";
+          program = "${self.packages.${system}.kye}/bin/Kye.py";
+        };
         packages.default = self.packages.${system}.kye;
         packages.kye = pkgs.python3Packages.callPackage ./kye.nix {};
 
